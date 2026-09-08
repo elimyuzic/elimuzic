@@ -2,34 +2,224 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ELIMYUZIC - נגן מוזיקה</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 50px; background: #121212; color: white; }
-    .ad-container { margin-top: 20px; padding: 15px; border: 1px dashed #555; }
-    img { max-width: 300px; border-radius: 8px; }
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --primary-color: #1db954;
+      --text-color: #ffffff;
+      --text-sub: #b3b3b3;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .ad-banner {
+      min-height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px dashed #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .ad-banner img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .player-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .admin-section {
+      margin-top: 10px;
+      border-top: 1px solid #333;
+      padding-top: 20px;
+    }
+
+    input[type="text"], input[type="password"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background-color: #2a2a2a;
+      color: white;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .status-msg {
+      margin-top: 10px;
+      font-size: 0.9em;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
-  <h1>ELIMYUZIC</h1>
-  <p>ברוכים הבאים לאפליקציית המוזיקה</p>
 
-  <div class="ad-container" id="adBox">
-    <p>אין פרסומת פעילה</p>
+  <header>
+    <h1>ELIMYUZIC</h1>
+    <p>אפליקציית המוזיקה והסטודיו</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- אזור תצוגת פרסומת -->
+    <div class="card">
+      <div class="ad-banner" id="adContainer">
+        <p style="color: var(--text-sub);">טוען פרסומת...</p>
+      </div>
+    </div>
+
+    <!-- נגן מוזיקה -->
+    <div class="card player-controls">
+      <h2>נגן השמעה</h2>
+      <audio id="audioPlayer" controls>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        הדפדפן שלך אינו תומך בנגן שמע.
+      </audio>
+    </div>
+
+    <!-- פאנל ניהול להעלאת מודעה -->
+    <div class="card admin-section">
+      <h3>פאנל מנהל - העלאת מודעה</h3>
+      <input type="password" id="adminCode" placeholder="הכנס קוד מנהל">
+      <input type="file" id="adFileInput" accept="image/*">
+      <button onclick="uploadAd()">העלה פרסומת חדשה</button>
+      <div class="status-msg" id="statusMessage"></div>
+    </div>
+
   </div>
 
   <script>
-    async function loadAd() {
+    // טעינת הפרסומת הנוכחית מהשרת
+    async function fetchAd() {
       try {
-        const res = await fetch('/api/ad');
-        const data = await res.json();
+        const response = await fetch('/api/ad');
+        const data = await response.json();
+        const container = document.getElementById('adContainer');
+        
         if (data.ad && data.ad.url) {
-          document.getElementById('adBox').innerHTML = `<img src="${data.ad.url}" alt="פרסומת">`;
+          container.innerHTML = `<img src="${data.ad.url}" alt="פרסומת">`;
+        } else {
+          container.innerHTML = `<p style="color: var(--text-sub);">אין פרסומת פעילה כעת</p>`;
         }
       } catch (err) {
-        console.error('שגיאה שטנעת פרסומת', err);
+        console.error('שגיאה בטעינת הפרסומת:', err);
       }
     }
-    loadAd();
+
+    // העלאת פרסומת חדשה לפאנל
+    async function uploadAd() {
+      const code = document.getElementById('adminCode').value;
+      const fileInput = document.getElementById('adFileInput');
+      const status = document.getElementById('statusMessage');
+
+      if (!code) {
+        status.style.color = '#ff5252';
+        status.innerText = 'נא להזין קוד מנהל';
+        return;
+      }
+
+      if (!fileInput.files[0]) {
+        status.style.color = '#ff5252';
+        status.innerText = 'נא לבחור קובץ תמונה';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('adminCode', code);
+      formData.append('adFile', fileInput.files[0]);
+
+      status.style.color = '#e0e0e0';
+      status.innerText = 'מעלה תמונה...';
+
+      try {
+        const res = await fetch('/api/admin/upload-ad', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          status.style.color = '#4caf50';
+          status.innerText = 'הפרסומת הועלתה בהצלחה!';
+          fetchAd();
+        } else {
+          status.style.color = '#ff5252';
+          status.innerText = result.message || 'שגיאה בהעלאה';
+        }
+      } catch (err) {
+        status.style.color = '#ff5252';
+        status.innerText = 'תקלה בתקשורת עם השרת';
+      }
+    }
+
+    fetchAd();
   </script>
 </body>
 </html>
