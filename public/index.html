@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELIMYUZIC - נגן וחיפוש מוזיקה</title>
+  <title>ELIMYUZIC - נגן מוזיקה</title>
   <style>
     :root {
       --bg-color: #121212;
@@ -26,10 +26,18 @@
 
     .container {
       width: 100%;
-      max-width: 700px;
+      max-width: 600px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .header-title {
+      color: var(--primary-color);
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 5px;
     }
 
     .card {
@@ -39,9 +47,9 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
-    input[type="text"], input[type="password"] {
+    input[type="text"], input[type="password"], input[type="file"] {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       margin: 8px 0;
       border-radius: 6px;
       border: 1px solid #444;
@@ -67,128 +75,185 @@
       gap: 10px;
     }
 
-    .song-list {
-      list-style: none;
-      padding: 0;
-      margin-top: 15px;
-    }
-
-    .song-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid #333;
-    }
-
-    .player-container {
-      margin-top: 15px;
+    .player-box {
       width: 100%;
-      height: 200px;
+      height: 250px;
       background: #000;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-top: 10px;
+      overflow: hidden;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 8px;
+    }
+
+    .song-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .song-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #333;
+    }
+
+    /* פאנל מנהל נסתר */
+    #adminPanel {
+      display: none;
+      border: 2px solid var(--primary-color);
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1 style="color: var(--primary-color); text-align: center;">ELIMYUZIC</h1>
+    <h1 class="header-title" id="secretHeader" onclick="handleSecretClick()">ELIMYUZIC</h1>
+    <p style="text-align: center; color: var(--text-sub); margin-top: -10px;">נגן מוזיקה וסטודיו</p>
 
-    <!-- חיפוש שירים ואמנים -->
-    <div class="card">
-      <h3>חיפוש שירים ואמנים</h3>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="הכנס שם שיר, אמן או מזהה YouTube...">
-        <button onclick="searchMusic()">חפש</button>
-      </div>
-      <ul class="song-list" id="searchResults"></ul>
+    <!-- פאנל מנהל נסתר (נפתח רק בלחיצה 6 פעמים) -->
+    <div class="card" id="adminPanel">
+      <h3>פאנל מנהל - העלאת מודעה</h3>
+      <input type="file" id="adFileInput" accept="image/*">
+      <button onclick="uploadAd()">העלה פרסומת</button>
+      <div id="statusMessage" style="margin-top:10px;"></div>
     </div>
 
-    <!-- נגן מוזיקה פעיל -->
+    <!-- חיפוש והפעלת שיר -->
+    <div class="card">
+      <h3>חיפוש / השמעת שיר מיוטיוב</h3>
+      <div class="search-box">
+        <input type="text" id="songInput" placeholder="הכנס קישור או מזהה YouTube...">
+        <button onclick="playSongFromInput()">הפעל</button>
+      </div>
+    </div>
+
+    <!-- נגן מוזיקה -->
     <div class="card">
       <h3>נגן פעיל</h3>
-      <div class="player-container" id="playerBox">
-        <p style="color: var(--text-sub);">בחר שיר כדי להשמיע</p>
+      <div class="player-box" id="playerContainer">
+        <p style="color: var(--text-sub)">הכנס קישור לשיר ולחץ הפעל</p>
       </div>
     </div>
 
-    <!-- הפלייליסט שלי -->
+    <!-- פלייליסט -->
     <div class="card">
       <h3>הפלייליסט שלי</h3>
-      <ul class="song-list" id="playlistBox"></ul>
+      <ul class="song-list" id="playlist"></ul>
     </div>
   </div>
 
   <script>
+    let clickCount = 0;
+    let clickTimer = null;
+    let adminToken = '';
+
+    // לחיצה 6 פעמים על הכותרת לפתיחת פאנל מנהל
+    function handleSecretClick() {
+      clickCount++;
+      clearTimeout(clickTimer);
+
+      if (clickCount === 6) {
+        clickCount = 0;
+        const code = prompt('הכנס קוד מנהל:');
+        if (code === '1059') {
+          adminToken = code;
+          document.getElementById('adminPanel').style.display = 'block';
+          alert('גישת מנהל אושרה!');
+        } else if (code) {
+          alert('קוד שגוי');
+        }
+      } else {
+        clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+      }
+    }
+
+    // השמעת שיר מיוטיוב
+    function playSongFromInput() {
+      const input = document.getElementById('songInput').value.trim();
+      if (!input) return;
+
+      let videoId = input;
+      if (input.includes('v=')) {
+        videoId = input.split('v=')[1].split('&')[0];
+      } else if (input.includes('youtu.be/')) {
+        videoId = input.split('youtu.be/')[1].split('?')[0];
+      }
+
+      const player = document.getElementById('playerContainer');
+      player.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+
+      addToPlaylist(videoId);
+    }
+
+    // ניהול פלייליסט מקומי
     let myPlaylist = JSON.parse(localStorage.getItem('myPlaylist')) || [];
 
-    function renderPlaylist() {
-      const box = document.getElementById('playlistBox');
-      box.innerHTML = '';
-      if (myPlaylist.length === 0) {
-        box.innerHTML = '<li style="color:var(--text-sub)">הפלייליסט ריק</li>';
-        return;
+    function addToPlaylist(id) {
+      if (!myPlaylist.includes(id)) {
+        myPlaylist.push(id);
+        localStorage.setItem('myPlaylist', JSON.stringify(myPlaylist));
+        renderPlaylist();
       }
-      myPlaylist.forEach((item, index) => {
+    }
+
+    function renderPlaylist() {
+      const list = document.getElementById('playlist');
+      list.innerHTML = '';
+      myPlaylist.forEach((id, index) => {
         const li = document.createElement('li');
         li.className = 'song-item';
         li.innerHTML = `
-          <span>${item.title}</span>
+          <span>שיר #${index + 1} (${id})</span>
           <div>
-            <button onclick="playSong('${item.id}')">נגן</button>
-            <button onclick="removeSong(${index})" style="background:#ff5252">הסר</button>
+            <button onclick="playDirect('${id}')">הפעל</button>
+            <button onclick="removeItem(${index})" style="background:#ff5252">הסר</button>
           </div>
         `;
-        box.appendChild(li);
+        list.appendChild(li);
       });
     }
 
-    function playSong(youtubeId) {
-      const playerBox = document.getElementById('playerBox');
-      playerBox.innerHTML = `
-        <iframe src="https://www.youtube.com/embed/${youtubeId}?autoplay=1" 
-                allow="autoplay; encrypted-media" allowfullscreen></iframe>
-      `;
+    function playDirect(id) {
+      document.getElementById('playerContainer').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     }
 
-    function addToPlaylist(title, id) {
-      myPlaylist.push({ title, id });
-      localStorage.setItem('myPlaylist', JSON.stringify(myPlaylist));
-      renderPlaylist();
-    }
-
-    function removeSong(index) {
+    function removeItem(index) {
       myPlaylist.splice(index, 1);
       localStorage.setItem('myPlaylist', JSON.stringify(myPlaylist));
       renderPlaylist();
     }
 
-    function searchMusic() {
-      const query = document.getElementById('searchInput').value;
-      const resultsBox = document.getElementById('searchResults');
-      if (!query) return;
+    // העלאת מודעה דרך פאנל המנהל
+    async function uploadAd() {
+      const fileInput = document.getElementById('adFileInput');
+      const status = document.getElementById('statusMessage');
 
-      // הדגמה של הוספת שיר/סרטון לפי מזהה או חיפוש
-      resultsBox.innerHTML = `
-        <li class="song-item">
-          <span>תוצאה עבור: ${query}</span>
-          <div>
-            <button onclick="playSong('${query}')">הפעל</button>
-            <button onclick="addToPlaylist('${query}', '${query}')">+ לפלייליסט</button>
-          </div>
-        </li>
-      `;
+      if (!fileInput.files[0]) {
+        status.innerText = 'יש לבחור קובץ';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('adminCode', adminToken);
+      formData.append('adFile', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/api/admin/upload-ad', { method: 'POST', body: formData });
+        const data = await res.json();
+        status.innerText = data.success ? 'הועלה בהצלחה!' : 'שגיאה בהעלאה';
+      } catch (e) {
+        status.innerText = 'שגיאה בתקשורת';
+      }
     }
 
     renderPlaylist();
