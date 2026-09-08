@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>ELIMYUZIC - נגן מוזיקה</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 50px; background: #121212; color: white; }
+    .ad-container { margin-top: 20px; padding: 15px; border: 1px dashed #555; }
+    img { max-width: 300px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>ELIMYUZIC</h1>
+  <p>ברוכים הבאים לאפליקציית המוזיקה</p>
+
+  <div class="ad-container" id="adBox">
+    <p>אין פרסומת פעילה</p>
+  </div>
+
+  <script>
+    async function loadAd() {
+      try {
+        const res = await fetch('/api/ad');
+        const data = await res.json();
+        if (data.ad && data.ad.url) {
+          document.getElementById('adBox').innerHTML = `<img src="${data.ad.url}" alt="פרסומת">`;
+        }
+      } catch (err) {
+        console.error('שגיאה שטנעת פרסומת', err);
+      }
+    }
+    loadAd();
+  </script>
+</body>
+</html>
