@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ELIMYUZIC</title>
   
-  <!-- הגדרות להתקנה כאפליקציה (PWA) -->
   <meta name="theme-color" content="#121212">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -76,31 +75,540 @@
       padding: 4px 8px;
       font-weight: bold;
       cursor: pointer;
-      fontכשכפתור "התחבר" אינו מגיב או שאינו מצליח לבצע את התחברות לאחר הזנת שם המשתמש, הבעיה נובעת בדרך כלל מתקלה מקומית בדפדפן, בעיית תקשורת או קוד חסר/שגוי בטופס.
+      font-size: 0.75rem;
+    }
 
-להלן הפתרונות המרכזיים לטיפול בבעיה:
+    /* Main Content Area */
+    .content-area {
+      flex: 1;
+      background: linear-gradient(to bottom, #1e1e1e, #121212);
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 130px;
+    }
 
-**בדיקות ראשוניות בממשק**
-* **בדיקת שדות חובה:** ודא שאין שדה נוסף שנדרש למלא (כמו סיסמה, אישור תנאים, או תיבת סימון CAPTCHA) שמונע את שליחת הטופס.
-* **רענון דף כפול:** לחץ על `Ctrl + F5` (או `Cmd + Shift + R` ב-Mac) כדי לרענן את הדף באופן שמתעלם מהזיכרון המטמון.
+    .player-view {
+      width: 100%;
+      height: 180px;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
 
----
+    #ytPlayer { width: 100%; height: 100%; }
 
-**פתרון תקלות בדפדפן**
-* **גלישה בסתר:** פתח חלון גלישה בסתר (Private / Incognito) ונסה להתחבר דרכו. אם זה עובד, הבעיה קשורה להרחבות (Extensions) או ל-Cache בדפדפן הרגיל.
-* **ניקוי נתוני גלישה:** נקה את ה-Cache וה-Cookies של הדפדפן עבור האתר המדובר.
-* **ביטול חוסמי פרסומות:** הרחבות כמו AdBlock או uBlock Origin עלולות לחסום סקריפטים של התחברות או בקשות API. כבה אותן באופן זמני.
+    /* הודעת פלייסהולדר למניעת מסך שחור ריק */
+    .player-placeholder {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #181818;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #b3b3b3;
+      z-index: 5;
+      text-align: center;
+      padding: 10px;
+    }
 
----
+    .ad-banner {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .ad-banner img { max-width: 90%; max-height: 80%; object-fit: contain; }
 
-**אבחון טכני (למפתחים / בוקרים)**
-אם מדובר באתר או אפליקציה שאתה מפתח בעצמך, מומלץ לבדוק את הנקודות הבאות:
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
 
-* **כלי פיתוח (F12):** 
-  * פתח את לונית ה-**Console** ובדוק אם יש שגיאות JavaScript בזמן הלחיצה.
-  * פתח את לשונית ה-**Network** ולחץ על התחברות - בדוק אם נשלחת בקשת `POST` או `GET` ואם מתקבל קוד שגיאה מהשרת (כגון 400, 401, 403, או 500).
-* **מאפייני הטופס (HTML):**
-  * ודא שלכפתור מוגדר `type="submit"` בתוך אלמנט `<form>`, או שיש לו אירוע `onClick` שקורא לפונקציית התחברות.
-  * אם מוגדר `e.preventDefault()` באירוע השליחה, ודא שבקשת ה-`fetch` או ה-`axios` מבוצעת כראוי בהמשך הפונקציה.
+    .media-card {
+      background-color: #181818;
+      padding: 8px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-<FollowUp label="רוצה שנבדוק יחד את קוד ה-HTML וה-JavaScript של טופס ההתחברות?" query="אני רוצה לבדוק את קוד טופס ההתחברות שלי, אציג לך את הקוד כדי שתעזור לי למצוא את התקלה." />
+    .media-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+    .media-card .title { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-card .sub-title { font-size: 0.7rem; color: #b3b3b3; }
+
+    .btn-action {
+      background-color: #1db954;
+      border: none;
+      color: black;
+      font-weight: bold;
+      padding: 6px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    /* Spotify Bottom Player Bar */
+    .spotify-player-bar {
+      position: fixed;
+      bottom: 56px;
+      left: 0; right: 0;
+      height: 56px;
+      background-color: #282828;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 90;
+      margin: 0 4px;
+    }
+
+    .now-playing { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+    .now-playing img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; background: #121212; }
+    .track-info { display: flex; flex-direction: column; overflow: hidden; }
+    .track-info .track-title { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-info .track-artist { font-size: 0.7rem; color: #b3b3b3; }
+
+    /* Spotify Bottom Navigation Bar */
+    .spotify-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 56px;
+      background-color: #000000;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #181818;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #b3b3b3;
+      background: none;
+      border: none;
+      font-size: 0.65rem;
+      cursor: pointer;
+    }
+
+    .nav-btn.active { color: #ffffff; }
+    .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+    /* Login Overlay & Modals */
+    .gate-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background-color: #282828;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 320px;
+      border: 1px solid #1db954;
+    }
+
+    .modal h3 { margin-bottom: 12px; color: #1db954; text-align: center; }
+    .modal input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #181818;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 6px;
+    }
+
+    #adminModal {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Gate Login Overlay -->
+  <div class="gate-overlay" id="gateOverlay">
+    <div class="modal">
+      <h3>ברוכים הבאים ל-ELIMYUZIC</h3>
+      <p style="font-size: 0.8rem; color: #b3b3b3; margin-bottom: 12px; text-align: center;">הכנס שם משתמש לכניסה</p>
+      <input type="text" id="loginUsername" placeholder="שם משתמש">
+      <button class="search-btn" style="width: 100%; padding: 10px;" onclick="login()">התחבר</button>
+    </div>
+  </div>
+
+  <div class="top-bar">
+    <div class="brand-logo-container" onclick="handleSecretClick()">
+      <img src="icon.png" alt="Logo" class="brand-logo-img" onerror="this.style.display='none'">
+      <span class="brand-logo-text">ELIMYUZIC</span>
+    </div>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="חפש שיר...">
+      <button class="search-btn" onclick="searchYoutube()">חפש</button>
+    </div>
+    <button class="search-btn" style="background:#333; color:white; padding: 4px 8px;" onclick="logout()">יציאה</button>
+  </div>
+
+  <div class="content-area">
+    <div class="player-view">
+      <div class="player-placeholder" id="playerPlaceholder">
+        <svg style="width:40px; height:40px; fill:#1db954; margin-bottom:8px;" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        <span>חפש ובחר שיר להשמעה</span>
+      </div>
+      <div id="ytPlayer"></div>
+      <div class="ad-banner" id="adBanner">
+        <h4 style="color:#1db954; margin-bottom:8px;">פרסומת</h4>
+        <img id="adImage" src="" alt="פרסומת">
+        <audio id="adAudio" style="display:none;"></audio>
+      </div>
+    </div>
+
+    <div id="resultsSection">
+      <h4 style="margin-bottom: 8px;">תוצאות</h4>
+      <div class="grid-container" id="resultsGrid"></div>
+    </div>
+
+    <div id="playlistSection" style="display: none;">
+      <h4 style="margin-bottom: 8px;">הפלייליסט שלי</h4>
+      <div class="grid-container" id="playlistGrid"></div>
+    </div>
+  </div>
+
+  <!-- Spotify Bottom Mini Player -->
+  <div class="spotify-player-bar">
+    <div class="now-playing">
+      <img id="barThumb" src="" alt="" style="display:none;">
+      <div class="track-info">
+        <div class="track-title" id="barTitle">אין שיר מופעל</div>
+        <div class="track-artist" id="barArtist">בחר שיר להשמעה</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotify Bottom Navigation Bar -->
+  <nav class="spotify-nav">
+    <button class="nav-btn active" id="navHomeBtn" onclick="showSection('results')">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>בית</span>
+    </button>
+    <button class="nav-btn" id="navSearchBtn" onclick="focusSearch()">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <span>חיפוש</span>
+    </button>
+    <button class="nav-btn" id="navLibraryBtn" onclick="showSection('playlist')">
+      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+      <span>הספריה שלי</span>
+    </button>
+  </nav>
+
+  <!-- Admin Modal -->
+  <div class="modal" id="adminModal">
+    <h3>פאנל מנהל</h3>
+    <label style="font-size:0.8rem;">העלאת תמונת פרסומת:</label>
+    <input type="file" id="adImgInput" accept="image/*">
+    <label style="font-size:0.8rem;">העלאת שמע פרסומת:</label>
+    <input type="file" id="adAudioInput" accept="audio/*">
+    <button class="search-btn" style="width: 100%; margin-bottom:12px;" onclick="saveAd()">שמור פרסומת</button>
+    <hr style="border-color:#444; margin:10px 0;">
+    <label style="font-size:0.8rem;">הוספת מנוי פרימיום:</label>
+    <input type="text" id="newPremUser" placeholder="שם משתמש">
+    <button class="search-btn" style="width: 100%; background:#007afe; color:white;" onclick="addPremiumUser()">הוסף מנוי</button>
+    <button class="search-btn" style="width: 100%; background: #444; color: white; margin-top: 10px;" onclick="closeAdmin()">סגור</button>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const YOUTUBE_API_KEY = 'AIzaSyDciIRdNamQuthn579qKWTM9CqXSyQzO7c';
+    let player;
+    let currentArtist = '';
+    let clickCount = 0, clickTimer = null;
+    let songCounter = 0;
+    let currentUser = null;
+    let isPremium = false;
+
+    let myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
+    let premiumUsers = JSON.parse(localStorage.getItem('elim_premium_users')) || ['admin'];
+    let savedAd = JSON.parse(localStorage.getItem('elim_ad_data')) || null;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('ytPlayer', {
+        height: '100%',
+        width: '100%',
+        playerVars: { 
+          'autoplay': 1, 
+          'controls': 1,
+          'playsinline': 1 
+        },
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED && currentArtist) {
+        autoPlayNextArtistSong();
+      }
+    }
+
+    async function autoPlayNextArtistSong() {
+      try {
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(currentArtist)}&type=video&key=${YOUTUBE_API_KEY}`);
+        const data = await res.json();
+        if (data.items && data.items.length > 0) {
+          const randomIndex = Math.floor(Math.random() * data.items.length);
+          const nextTrack = data.items[randomIndex];
+          playSong(nextTrack.id.videoId, nextTrack.snippet.title, nextTrack.snippet.channelTitle, nextTrack.snippet.thumbnails.medium.url);
+        }
+      } catch(e) {
+        console.error('Autoplay error', e);
+      }
+    }
+
+    function handleSecretClick() {
+      clickCount++;
+      clearTimeout(clickTimer);
+      if (clickCount === 6) {
+        clickCount = 0;
+        const code = prompt('הכנס קוד מנהל:');
+        if (code === '1059') {
+          document.getElementById('adminModal').style.display = 'block';
+        } else if (code) alert('קוד שגוי');
+      } else {
+        clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+      }
+    }
+
+    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+
+    function login() {
+      const user = document.getElementById('loginUsername').value.trim();
+      if (!user) { alert('יש להזין שם משתמש'); return; }
+      currentUser = user;
+      isPremium = premiumUsers.includes(user);
+      document.getElementById('gateOverlay').style.display = 'none';
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('gateOverlay').style.display = 'flex';
+    }
+
+    function addPremiumUser() {
+      const newUser = document.getElementById('newPremUser').value.trim();
+      if (newUser && !premiumUsers.includes(newUser)) {
+        premiumUsers.push(newUser);
+        localStorage.setItem('elim_premium_users', JSON.stringify(premiumUsers));
+        alert('נוסף בהצלחה!');
+        document.getElementById('newPremUser').value = '';
+      }
+    }
+
+    function saveAd() {
+      const imgFile = document.getElementById('adImgInput').files[0];
+      const audioFile = document.getElementById('adAudioInput').files[0];
+      if (!imgFile) { alert('יש לבחור תמונת פרסומת'); return; }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const adData = { img: e.target.result, audio: null };
+        if (audioFile) {
+          const audioReader = new FileReader();
+          audioReader.onload = function(e2) {
+            adData.audio = e2.target.result;
+            localStorage.setItem('elim_ad_data', JSON.stringify(adData));
+            savedAd = adData;
+            alert('הפרסומת נשמרה!');
+          };
+          audioReader.readAsDataURL(audioFile);
+        } else {
+          localStorage.setItem('elim_ad_data', JSON.stringify(adData));
+          savedAd = adData;
+          alert('הפרסומת נשמרה!');
+        }
+      };
+      reader.readAsDataURL(imgFile);
+    }
+
+    function playSong(id, title, artist, img) {
+      currentArtist = artist;
+      songCounter++;
+      
+      // הסרת הפלייסהולדר ברגע שמופעל שיר
+      const placeholder = document.getElementById('playerPlaceholder');
+      if (placeholder) placeholder.style.display = 'none';
+
+      if (!isPremium && songCounter % 6 === 0 && savedAd) {
+        triggerAd(() => startTrack(id, title, artist, img));
+      } else {
+        startTrack(id, title, artist, img);
+      }
+    }
+
+    function triggerAd(callback) {
+      const banner = document.getElementById('adBanner');
+      const adImg = document.getElementById('adImage');
+      const adAudio = document.getElementById('adAudio');
+
+      adImg.src = savedAd.img;
+      banner.style.display = 'flex';
+
+      if (player && player.pauseVideo) player.pauseVideo();
+
+      if (savedAd.audio) {
+        adAudio.src = savedAd.audio;
+        adAudio.style.display = 'block';
+        adAudio.play();
+        adAudio.onended = () => {
+          banner.style.display = 'none';
+          callback();
+        };
+      } else {
+        setTimeout(() => {
+          banner.style.display = 'none';
+          callback();
+        }, 5000);
+      }
+    }
+
+    function startTrack(id, title, artist, img) {
+      if (player && player.loadVideoById) {
+        player.loadVideoById(id);
+      }
+      document.getElementById('barTitle').innerText = title;
+      document.getElementById('barArtist').innerText = artist;
+      const thumb = document.getElementById('barThumb');
+      thumb.src = img;
+      thumb.style.display = 'block';
+    }
+
+    async function searchYoutube() {
+      const query = document.getElementById('searchInput').value.trim();
+      const grid = document.getElementById('resultsGrid');
+      if (!query) return;
+
+      grid.innerHTML = '<p style="color:#b3b3b3;">מחפש...</p>';
+      showSection('results');
+
+      try {
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
+        const data = await res.json();
+
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = '<p style="color:#b3b3b3;">לא נמצאו תוצאות.</p>';
+          return;
+        }
+
+        grid.innerHTML = '';
+        data.items.forEach(item => {
+          const videoId = item.id.videoId;
+          const title = item.snippet.title;
+          const channel = item.snippet.channelTitle;
+          const imgUrl = item.snippet.thumbnails.medium.url;
+
+          const card = document.createElement('div');
+          card.className = 'media-card';
+          card.innerHTML = `
+            <img src="${imgUrl}">
+            <div class="title">${title}</div>
+            <div class="sub-title">${channel}</div>
+            <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
+            <button class="btn-action" style="background:#333; color:white" onclick="addToPlaylist('${videoId}', '${escapeQuotes(title)}', '${imgUrl}', '${escapeQuotes(channel)}')">+ פלייליסט</button>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינה.</p>';
+      }
+    }
+
+    function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    function addToPlaylist(id, title, img, artist) {
+      if (!myPlaylist.some(item => item.id === id)) {
+        myPlaylist.push({ id, title, img, artist });
+        localStorage.setItem('elim_playlist', JSON.stringify(myPlaylist));
+        renderPlaylist();
+      }
+    }
+
+    function renderPlaylist() {
+      const grid = document.getElementById('playlistGrid');
+      grid.innerHTML = '';
+      if (myPlaylist.length === 0) {
+        grid.innerHTML = '<p style="color:#b3b3b3;">הפלייליסט ריק.</p>';
+        return;
+      }
+      myPlaylist.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'media-card';
+        card.innerHTML = `
+          <img src="${item.img}">
+          <div class="title">${item.title}</div>
+          <div class="sub-title">${item.artist}</div>
+          <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
+          <button class="btn-action" style="background:#ff5252; color:white" onclick="removeFromPlaylist(${index})">הסר</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function removeFromPlaylist(index) {
+      myPlaylist.splice(index, 1);
+      localStorage.setItem('elim_playlist', JSON.stringify(myPlaylist));
+      renderPlaylist();
+    }
+
+    function showSection(section) {
+      document.getElementById('resultsSection').style.display = section === 'results' ? 'block' : 'none';
+      document.getElementById('playlistSection').style.display = section === 'playlist' ? 'block' : 'none';
+
+      document.getElementById('navHomeBtn').classList.toggle('active', section === 'results');
+      document.getElementById('navLibraryBtn').classList.toggle('active', section === 'playlist');
+      document.getElementById('navSearchBtn').classList.remove('active');
+    }
+
+    function focusSearch() {
+      showSection('results');
+      document.getElementById('navSearchBtn').classList.add('active');
+      document.getElementById('navHomeBtn').classList.remove('active');
+      document.getElementById('searchInput').focus();
+    }
+
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') searchYoutube();
+    });
+
+    document.getElementById('loginUsername').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') login();
+    });
+
+    renderPlaylist();
+  </script>
+</body>
+</html>
