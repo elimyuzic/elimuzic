@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELIMYUZIC - נגן מוזיקה</title>
+  <title>ELIMYUZIC</title>
   <style>
     :root {
       --bg-color: #121212;
@@ -37,6 +37,7 @@
       text-align: center;
       cursor: pointer;
       user-select: none;
+      font-size: 2.2em;
       margin-bottom: 5px;
     }
 
@@ -47,9 +48,9 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
 
-    input[type="text"], input[type="password"], input[type="file"] {
+    input[type="text"], input[type="file"] {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 8px 0;
       border-radius: 6px;
       border: 1px solid #444;
@@ -103,11 +104,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px;
+      padding: 10px;
       border-bottom: 1px solid #333;
     }
 
-    /* פאנל מנהל נסתר */
     #adminPanel {
       display: none;
       border: 2px solid var(--primary-color);
@@ -118,9 +118,9 @@
 
   <div class="container">
     <h1 class="header-title" id="secretHeader" onclick="handleSecretClick()">ELIMYUZIC</h1>
-    <p style="text-align: center; color: var(--text-sub); margin-top: -10px;">נגן מוזיקה וסטודיו</p>
+    <p style="text-align: center; color: var(--text-sub); margin-top: -10px;">סטודיו ונגן מוזיקה</p>
 
-    <!-- פאנל מנהל נסתר (נפתח רק בלחיצה 6 פעמים) -->
+    <!-- פאנל מנהל נסתר -->
     <div class="card" id="adminPanel">
       <h3>פאנל מנהל - העלאת מודעה</h3>
       <input type="file" id="adFileInput" accept="image/*">
@@ -128,16 +128,16 @@
       <div id="statusMessage" style="margin-top:10px;"></div>
     </div>
 
-    <!-- חיפוש והפעלת שיר -->
+    <!-- נגן וחיפוש שירים -->
     <div class="card">
-      <h3>חיפוש / השמעת שיר מיוטיוב</h3>
+      <h3>נגן מוזיקה מיוטיוב</h3>
       <div class="search-box">
-        <input type="text" id="songInput" placeholder="הכנס קישור או מזהה YouTube...">
+        <input type="text" id="songInput" placeholder="הדבק קישור או מזהה מ-YouTube...">
         <button onclick="playSongFromInput()">הפעל</button>
       </div>
     </div>
 
-    <!-- נגן מוזיקה -->
+    <!-- תצוגת נגן -->
     <div class="card">
       <h3>נגן פעיל</h3>
       <div class="player-box" id="playerContainer">
@@ -157,7 +157,7 @@
     let clickTimer = null;
     let adminToken = '';
 
-    // לחיצה 6 פעמים על הכותרת לפתיחת פאנל מנהל
+    // כניסה נסתרת - 6 לחיצות על ELIMYUZIC
     function handleSecretClick() {
       clickCount++;
       clearTimeout(clickTimer);
@@ -177,7 +177,7 @@
       }
     }
 
-    // השמעת שיר מיוטיוב
+    // חילוץ מזהה יוטיוב והפעלת השיר
     function playSongFromInput() {
       const input = document.getElementById('songInput').value.trim();
       if (!input) return;
@@ -189,13 +189,16 @@
         videoId = input.split('youtu.be/')[1].split('?')[0];
       }
 
-      const player = document.getElementById('playerContainer');
-      player.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-
+      playDirect(videoId);
       addToPlaylist(videoId);
     }
 
-    // ניהול פלייליסט מקומי
+    function playDirect(id) {
+      document.getElementById('playerContainer').innerHTML = 
+        `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+
+    // ניהול פלייליסט שמור בדפדפן
     let myPlaylist = JSON.parse(localStorage.getItem('myPlaylist')) || [];
 
     function addToPlaylist(id) {
@@ -209,11 +212,15 @@
     function renderPlaylist() {
       const list = document.getElementById('playlist');
       list.innerHTML = '';
+      if (myPlaylist.length === 0) {
+        list.innerHTML = '<li style="color:var(--text-sub)">אין שירים בפלייליסט</li>';
+        return;
+      }
       myPlaylist.forEach((id, index) => {
         const li = document.createElement('li');
         li.className = 'song-item';
         li.innerHTML = `
-          <span>שיר #${index + 1} (${id})</span>
+          <span>שיר #${index + 1}</span>
           <div>
             <button onclick="playDirect('${id}')">הפעל</button>
             <button onclick="removeItem(${index})" style="background:#ff5252">הסר</button>
@@ -223,23 +230,19 @@
       });
     }
 
-    function playDirect(id) {
-      document.getElementById('playerContainer').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    }
-
     function removeItem(index) {
       myPlaylist.splice(index, 1);
       localStorage.setItem('myPlaylist', JSON.stringify(myPlaylist));
       renderPlaylist();
     }
 
-    // העלאת מודעה דרך פאנל המנהל
+    // העלאת מודעה דרך השרת
     async function uploadAd() {
       const fileInput = document.getElementById('adFileInput');
       const status = document.getElementById('statusMessage');
 
       if (!fileInput.files[0]) {
-        status.innerText = 'יש לבחור קובץ';
+        status.innerText = 'יש לבחור קובץ תמונה';
         return;
       }
 
@@ -252,7 +255,7 @@
         const data = await res.json();
         status.innerText = data.success ? 'הועלה בהצלחה!' : 'שגיאה בהעלאה';
       } catch (e) {
-        status.innerText = 'שגיאה בתקשורת';
+        status.innerText = 'שגיאה בתקשורת עם השרת';
       }
     }
 
