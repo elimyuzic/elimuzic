@@ -16,7 +16,6 @@
       overflow: hidden;
     }
 
-    /* Top Bar */
     .top-bar {
       height: 60px;
       background-color: #000000;
@@ -63,7 +62,6 @@
       cursor: pointer;
     }
 
-    /* Main Layout */
     .main-layout {
       display: flex;
       flex: 1;
@@ -149,10 +147,9 @@
       margin-top: 4px;
     }
 
-    /* Player View Area */
     .player-view {
       width: 100%;
-      height: 220px;
+      height: 250px;
       background: #000;
       border-radius: 12px;
       overflow: hidden;
@@ -163,7 +160,6 @@
 
     iframe { width: 100%; height: 100%; border: none; }
 
-    /* Bottom Bar (Spotify Style) */
     .player-bar {
       height: 80px;
       background-color: #181818;
@@ -178,7 +174,6 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      width: 250px;
     }
 
     .now-playing img {
@@ -199,7 +194,6 @@
       color: #b3b3b3;
     }
 
-    /* Admin Modal */
     #adminModal {
       display: none;
       position: fixed;
@@ -232,18 +226,15 @@
     </div>
 
     <div class="content-area">
-      <!-- נגן מרכזי -->
       <div class="player-view" id="playerContainer">
-        <p style="color: #b3b3b3;">בחר שיר כדי להתחיל להשמיע</p>
+        <p style="color: #b3b3b3;">בחר שיר מתוך הרשימה למטה</p>
       </div>
 
-      <!-- אזור תוצאות -->
       <div id="resultsSection">
         <h3 style="margin-bottom: 12px;">תוצאות מוזיקה</h3>
         <div class="grid-container" id="resultsGrid"></div>
       </div>
 
-      <!-- אזור פלייליסט -->
       <div id="playlistSection" style="display: none;">
         <h3 style="margin-bottom: 12px;">הפלייליסט שלי</h3>
         <div class="grid-container" id="playlistGrid"></div>
@@ -251,18 +242,16 @@
     </div>
   </div>
 
-  <!-- סרגל נגן תחתון -->
   <div class="player-bar">
     <div class="now-playing">
       <img id="barThumb" src="" alt="" style="display:none;">
       <div class="track-info">
         <div class="track-title" id="barTitle">אין שיר מופעל</div>
-        <div class="track-artist" id="barArtist">בחר שיר מתוך הרשימה</div>
+        <div class="track-artist" id="barArtist">בחר שיר להשמעה</div>
       </div>
     </div>
   </div>
 
-  <!-- פאנל מנהל -->
   <div id="adminModal">
     <h3 style="margin-bottom: 10px; color: #1db954;">פאנל מנהל</h3>
     <input type="file" id="adFileInput" accept="image/*" style="margin-bottom: 10px; width: 100%;">
@@ -277,7 +266,6 @@
     let adminToken = '';
     let myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
 
-    // 6 לחיצות על ELIMYUZIC לקבלת קוד מנהל
     function handleSecretClick() {
       clickCount++;
       clearTimeout(clickTimer);
@@ -300,7 +288,6 @@
       document.getElementById('adminModal').style.display = 'none';
     }
 
-    // חיפוש ב-YouTube
     async function searchYoutube() {
       const query = document.getElementById('searchInput').value.trim();
       const grid = document.getElementById('resultsGrid');
@@ -345,10 +332,9 @@
       return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
-    // השמעת שיר ועדכון הסרגל התחתון
     function playSong(id, title, artist, img) {
       document.getElementById('playerContainer').innerHTML = 
-        `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        `<iframe src="https://www.youtube.com/embed/${id}?enablejsapi=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
 
       document.getElementById('barTitle').innerText = title;
       document.getElementById('barArtist').innerText = artist;
