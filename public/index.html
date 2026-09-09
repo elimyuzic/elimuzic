@@ -15,14 +15,18 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #000000;
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #121212;
       color: #ffffff;
-      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    body {
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
     /* Top Bar */
@@ -34,6 +38,7 @@
       justify-content: space-between;
       padding: 0 16px;
       border-bottom: 1px solid #282828;
+      z-index: 10;
     }
 
     .brand-logo-container {
@@ -101,7 +106,6 @@
 
     #ytPlayer { width: 100%; height: 100%; }
 
-    /* הודעת פלייסהולדר למניעת מסך שחור ריק */
     .player-placeholder {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -158,7 +162,7 @@
       font-size: 0.75rem;
     }
 
-    /* Spotify Bottom Player Bar */
+    /* Bottom Player Bar */
     .spotify-player-bar {
       position: fixed;
       bottom: 56px;
@@ -180,7 +184,7 @@
     .track-info .track-title { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-info .track-artist { font-size: 0.7rem; color: #b3b3b3; }
 
-    /* Spotify Bottom Navigation Bar */
+    /* Bottom Nav Bar */
     .spotify-nav {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -208,7 +212,7 @@
     .nav-btn.active { color: #ffffff; }
     .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
 
-    /* Login Overlay & Modals */
+    /* Overlays & Modals */
     .gate-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -251,7 +255,7 @@
 </head>
 <body>
 
-  <!-- Gate Login Overlay -->
+  <!-- Gate Overlay -->
   <div class="gate-overlay" id="gateOverlay">
     <div class="modal">
       <h3>ברוכים הבאים ל-ELIMYUZIC</h3>
@@ -298,7 +302,7 @@
     </div>
   </div>
 
-  <!-- Spotify Bottom Mini Player -->
+  <!-- Bottom Mini Player -->
   <div class="spotify-player-bar">
     <div class="now-playing">
       <img id="barThumb" src="" alt="" style="display:none;">
@@ -309,7 +313,7 @@
     </div>
   </div>
 
-  <!-- Spotify Bottom Navigation Bar -->
+  <!-- Bottom Nav -->
   <nav class="spotify-nav">
     <button class="nav-btn active" id="navHomeBtn" onclick="showSection('results')">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -350,9 +354,18 @@
     let currentUser = null;
     let isPremium = false;
 
-    let myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
-    let premiumUsers = JSON.parse(localStorage.getItem('elim_premium_users')) || ['admin'];
-    let savedAd = JSON.parse(localStorage.getItem('elim_ad_data')) || null;
+    let myPlaylist = [];
+    let premiumUsers = ['admin'];
+    let savedAd = null;
+
+    // טעינה בטוחה של הנתונים מהזיכרון המקומי
+    try {
+      myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
+      premiumUsers = JSON.parse(localStorage.getItem('elim_premium_users')) || ['admin'];
+      savedAd = JSON.parse(localStorage.getItem('elim_ad_data')) || null;
+    } catch(e) {
+      console.error("Local storage access error:", e);
+    }
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('ytPlayer', {
@@ -459,7 +472,6 @@
       currentArtist = artist;
       songCounter++;
       
-      // הסרת הפלייסהולדר ברגע שמופעל שיר
       const placeholder = document.getElementById('playerPlaceholder');
       if (placeholder) placeholder.style.display = 'none';
 
@@ -559,6 +571,7 @@
 
     function renderPlaylist() {
       const grid = document.getElementById('playlistGrid');
+      if(!grid) return;
       grid.innerHTML = '';
       if (myPlaylist.length === 0) {
         grid.innerHTML = '<p style="color:#b3b3b3;">הפלייליסט ריק.</p>';
@@ -600,15 +613,17 @@
       document.getElementById('searchInput').focus();
     }
 
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') searchYoutube();
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') searchYoutube();
+      });
 
-    document.getElementById('loginUsername').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') login();
-    });
+      document.getElementById('loginUsername').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') login();
+      });
 
-    renderPlaylist();
+      renderPlaylist();
+    });
   </script>
 </body>
 </html>
