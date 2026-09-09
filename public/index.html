@@ -62,6 +62,12 @@
       cursor: pointer;
     }
 
+    .user-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .main-layout {
       display: flex;
       flex: 1;
@@ -156,9 +162,30 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
-    iframe { width: 100%; height: 100%; border: none; }
+    #ytPlayer {
+      width: 100%;
+      height: 100%;
+    }
+
+    .ad-banner {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .ad-banner img {
+      max-width: 90%;
+      max-height: 80%;
+      object-fit: contain;
+    }
 
     .player-bar {
       height: 80px;
@@ -194,21 +221,56 @@
       color: #b3b3b3;
     }
 
+    /* מסך התחברות חובה בהתחלה */
+    .gate-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background-color: #282828;
+      padding: 24px;
+      border-radius: 12px;
+      width: 320px;
+      border: 1px solid #1db954;
+    }
+
+    .modal h3 { margin-bottom: 12px; color: #1db954; text-align: center; }
+    .modal input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #181818;
+      border: 1px solid #444;
+      color: white;
+      border-radius: 6px;
+    }
+
     #adminModal {
       display: none;
       position: fixed;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      background-color: #282828;
-      padding: 20px;
-      border-radius: 12px;
-      z-index: 1000;
-      width: 300px;
-      border: 1px solid #1db954;
+      z-index: 10000;
     }
   </style>
 </head>
 <body>
+
+  <!-- מסך התחברות חובה בכניסה -->
+  <div class="gate-overlay" id="gateOverlay">
+    <div class="modal">
+      <h3>ברוכים הבאים ל-ELIMYUZIC</h3>
+      <p style="font-size: 0.8rem; color: #b3b3b3; margin-bottom: 12px; text-align: center;">הכנס שם משתמש כדי להיכנס לאפליקציה</p>
+      <input type="text" id="loginUsername" placeholder="שם משתמש">
+      <button class="search-btn" style="width: 100%; padding: 10px;" onclick="login()">התחבר והמשך</button>
+    </div>
+  </div>
 
   <div class="top-bar">
     <div class="brand-logo" onclick="handleSecretClick()">ELIMYUZIC</div>
@@ -216,7 +278,10 @@
       <input type="text" id="searchInput" placeholder="חפש שיר או אמן...">
       <button class="search-btn" onclick="searchYoutube()">חפש</button>
     </div>
-    <div></div>
+    <div class="user-status">
+      <span id="userBadge" style="font-size:0.8rem; color:#b3b3b3;">לא מחובר</span>
+      <button class="search-btn" style="background:#333; color:white;" onclick="logout()">החלף חשבון</button>
+    </div>
   </div>
 
   <div class="main-layout">
@@ -226,8 +291,13 @@
     </div>
 
     <div class="content-area">
-      <div class="player-view" id="playerContainer">
-        <p style="color: #b3b3b3;">בחר שיר מתוך הרשימה למטה</p>
+      <div class="player-view">
+        <div id="ytPlayer"></div>
+        <div class="ad-banner" id="adBanner">
+          <h4 style="color:#1db954; margin-bottom:8px;">פרסומת</h4>
+          <img id="adImage" src="" alt="פרסומת">
+          <audio id="adAudio" style="display:none;"></audio>
+        </div>
       </div>
 
       <div id="resultsSection">
@@ -252,40 +322,163 @@
     </div>
   </div>
 
-  <div id="adminModal">
-    <h3 style="margin-bottom: 10px; color: #1db954;">פאנל מנהל</h3>
-    <input type="file" id="adFileInput" accept="image/*" style="margin-bottom: 10px; width: 100%;">
-    <button class="search-btn" style="width: 100%;" onclick="uploadAd()">העלה פרסומת</button>
-    <button class="search-btn" style="width: 100%; background: #444; color: white; margin-top: 5px;" onclick="closeAdmin()">סגור</button>
+  <!-- פאנל מנהל -->
+  <div class="modal" id="adminModal">
+    <h3>פאנל מנהל</h3>
+    <label style="font-size:0.8rem;">העלאת תמונת פרסומת:</label>
+    <input type="file" id="adImgInput" accept="image/*">
+    <label style="font-size:0.8rem;">העלאת שמע פרסומת (אופציונלי):</label>
+    <input type="file" id="adAudioInput" accept="audio/*">
+    <button class="search-btn" style="width: 100%; margin-bottom:12px;" onclick="saveAd()">שמור פרסומת</button>
+    
+    <hr style="border-color:#444; margin:10px 0;">
+    
+    <label style="font-size:0.8rem;">הוספת מנוי פרימיום (ללא פרסומות):</label>
+    <input type="text" id="newPremUser" placeholder="שם משתמש">
+    <button class="search-btn" style="width: 100%; background:#007afe; color:white;" onclick="addPremiumUser()">הוסף מנוי</button>
+
+    <button class="search-btn" style="width: 100%; background: #444; color: white; margin-top: 10px;" onclick="closeAdmin()">סגור</button>
   </div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     const YOUTUBE_API_KEY = 'AIzaSyDciIRdNamQuthn579qKWTM9CqXSyQzO7c';
-    let clickCount = 0;
-    let clickTimer = null;
-    let adminToken = '';
+    let player;
+    let clickCount = 0, clickTimer = null;
+    let songCounter = 0;
+    let currentUser = null;
+    let isPremium = false;
+
     let myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
+    let premiumUsers = JSON.parse(localStorage.getItem('elim_premium_users')) || ['admin'];
+    let savedAd = JSON.parse(localStorage.getItem('elim_ad_data')) || null;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('ytPlayer', {
+        height: '100%',
+        width: '100%',
+        playerVars: { 'autoplay': 1, 'controls': 1 }
+      });
+    }
 
     function handleSecretClick() {
       clickCount++;
       clearTimeout(clickTimer);
-
       if (clickCount === 6) {
         clickCount = 0;
         const code = prompt('הכנס קוד מנהל:');
         if (code === '1059') {
-          adminToken = code;
           document.getElementById('adminModal').style.display = 'block';
-        } else if (code) {
-          alert('קוד שגוי');
-        }
+        } else if (code) alert('קוד שגוי');
       } else {
         clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
       }
     }
 
-    function closeAdmin() {
-      document.getElementById('adminModal').style.display = 'none';
+    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+
+    function login() {
+      const user = document.getElementById('loginUsername').value.trim();
+      if (!user) {
+        alert('יש להזין שם משתמש כדי להמשיך');
+        return;
+      }
+      currentUser = user;
+      isPremium = premiumUsers.includes(user);
+      document.getElementById('userBadge').innerText = user + (isPremium ? ' (Premium)' : ' (חינמי)');
+      document.getElementById('userBadge').style.color = isPremium ? '#1db954' : '#b3b3b3';
+      
+      // הסרת המסך החוסם
+      document.getElementById('gateOverlay').style.display = 'none';
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('loginUsername').value = '';
+      document.getElementById('gateOverlay').style.display = 'flex';
+    }
+
+    function addPremiumUser() {
+      const newUser = document.getElementById('newPremUser').value.trim();
+      if (newUser && !premiumUsers.includes(newUser)) {
+        premiumUsers.push(newUser);
+        localStorage.setItem('elim_premium_users', JSON.stringify(premiumUsers));
+        alert('מנוי פרימיום נוסף בהצלחה!');
+        document.getElementById('newPremUser').value = '';
+      }
+    }
+
+    function saveAd() {
+      const imgFile = document.getElementById('adImgInput').files[0];
+      const audioFile = document.getElementById('adAudioInput').files[0];
+
+      if (!imgFile) { alert('יש לבחור לפחות תמונת פרסומת'); return; }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const adData = { img: e.target.result, audio: null };
+        if (audioFile) {
+          const audioReader = new FileReader();
+          audioReader.onload = function(e2) {
+            adData.audio = e2.target.result;
+            localStorage.setItem('elim_ad_data', JSON.stringify(adData));
+            savedAd = adData;
+            alert('הפרסומת שנשמרה בהצלחה!');
+          };
+          audioReader.readAsDataURL(audioFile);
+        } else {
+          localStorage.setItem('elim_ad_data', JSON.stringify(adData));
+          savedAd = adData;
+          alert('הפרסומת נשמרה בהצלחה!');
+        }
+      };
+      reader.readAsDataURL(imgFile);
+    }
+
+    function playSong(id, title, artist, img) {
+      songCounter++;
+      if (!isPremium && songCounter % 6 === 0 && savedAd) {
+        triggerAd(() => startTrack(id, title, artist, img));
+      } else {
+        startTrack(id, title, artist, img);
+      }
+    }
+
+    function triggerAd(callback) {
+      const banner = document.getElementById('adBanner');
+      const adImg = document.getElementById('adImage');
+      const adAudio = document.getElementById('adAudio');
+
+      adImg.src = savedAd.img;
+      banner.style.display = 'flex';
+
+      if (player && player.pauseVideo) player.pauseVideo();
+
+      if (savedAd.audio) {
+        adAudio.src = savedAd.audio;
+        adAudio.style.display = 'block';
+        adAudio.play();
+        adAudio.onended = () => {
+          banner.style.display = 'none';
+          callback();
+        };
+      } else {
+        setTimeout(() => {
+          banner.style.display = 'none';
+          callback();
+        }, 5000);
+      }
+    }
+
+    function startTrack(id, title, artist, img) {
+      if (player && player.loadVideoById) {
+        player.loadVideoById(id);
+      }
+      document.getElementById('barTitle').innerText = title;
+      document.getElementById('barArtist').innerText = artist;
+      const thumb = document.getElementById('barThumb');
+      thumb.src = img;
+      thumb.style.display = 'block';
     }
 
     async function searchYoutube() {
@@ -328,20 +521,7 @@
       }
     }
 
-    function escapeQuotes(str) {
-      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    }
-
-    function playSong(id, title, artist, img) {
-      document.getElementById('playerContainer').innerHTML = 
-        `<iframe src="https://www.youtube.com/embed/${id}?enablejsapi=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-
-      document.getElementById('barTitle').innerText = title;
-      document.getElementById('barArtist').innerText = artist;
-      const thumb = document.getElementById('barThumb');
-      thumb.src = img;
-      thumb.style.display = 'block';
-    }
+    function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
     function addToPlaylist(id, title, img, artist) {
       if (!myPlaylist.some(item => item.id === id)) {
@@ -354,12 +534,10 @@
     function renderPlaylist() {
       const grid = document.getElementById('playlistGrid');
       grid.innerHTML = '';
-
       if (myPlaylist.length === 0) {
         grid.innerHTML = '<p style="color:#b3b3b3;">הפלייליסט ריק.</p>';
         return;
       }
-
       myPlaylist.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'media-card';
@@ -387,6 +565,10 @@
 
     document.getElementById('searchInput').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') searchYoutube();
+    });
+
+    document.getElementById('loginUsername').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') login();
     });
 
     renderPlaylist();
