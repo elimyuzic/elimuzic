@@ -3,16 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ELIMYUZIC - Spotify Edition</title>
+  <title>ELIMYUZIC</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       background-color: #000000;
       color: #ffffff;
       height: 100vh;
@@ -38,7 +33,6 @@
       font-weight: 800;
       cursor: pointer;
       user-select: none;
-      letter-spacing: 1px;
     }
 
     .search-container {
@@ -47,12 +41,7 @@
       background-color: #242424;
       border-radius: 50px;
       padding: 6px 16px;
-      width: 360px;
-      border: 1px solid transparent;
-    }
-
-    .search-container:focus-within {
-      border-color: #ffffff;
+      width: 320px;
     }
 
     .search-container input {
@@ -61,7 +50,6 @@
       color: #ffffff;
       width: 100%;
       outline: none;
-      font-size: 0.9rem;
       padding-right: 8px;
     }
 
@@ -82,63 +70,51 @@
       overflow: hidden;
     }
 
-    /* Sidebar */
     .sidebar {
-      width: 240px;
+      width: 220px;
       background-color: #121212;
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     .nav-item {
       color: #b3b3b3;
       font-weight: bold;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: 0.2s;
+      padding: 8px;
+      border-radius: 4px;
     }
 
     .nav-item:hover, .nav-item.active {
       color: #ffffff;
+      background-color: #282828;
     }
 
-    /* Content Area */
     .content-area {
       flex: 1;
       background: linear-gradient(to bottom, #1e1e1e, #121212);
       padding: 24px;
       overflow-y: auto;
-    }
-
-    .section-title {
-      font-size: 1.4rem;
-      margin-bottom: 16px;
-      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 16px;
     }
 
     .media-card {
       background-color: #181818;
-      padding: 14px;
+      padding: 12px;
       border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-    }
-
-    .media-card:hover {
-      background-color: #282828;
+      gap: 8px;
     }
 
     .media-card img {
@@ -149,7 +125,7 @@
     }
 
     .media-card .title {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
@@ -157,18 +133,11 @@
     }
 
     .media-card .sub-title {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #b3b3b3;
     }
 
-    .card-actions {
-      display: flex;
-      gap: 6px;
-      margin-top: 5px;
-    }
-
     .btn-action {
-      flex: 1;
       background-color: #1db954;
       border: none;
       color: black;
@@ -177,108 +146,128 @@
       border-radius: 12px;
       cursor: pointer;
       font-size: 0.75rem;
+      margin-top: 4px;
     }
 
-    /* Player Footer */
+    /* Player View Area */
+    .player-view {
+      width: 100%;
+      height: 220px;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    iframe { width: 100%; height: 100%; border: none; }
+
+    /* Bottom Bar (Spotify Style) */
     .player-bar {
-      height: 90px;
-      background-color: #000000;
+      height: 80px;
+      background-color: #181818;
       border-top: 1px solid #282828;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 20px;
     }
 
-    .iframe-container {
-      width: 320px;
-      height: 70px;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #181818;
+    .now-playing {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 250px;
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    .now-playing img {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #282828;
     }
 
-    /* Admin Panel */
+    .track-info .track-title {
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .track-info .track-artist {
+      font-size: 0.75rem;
+      color: #b3b3b3;
+    }
+
+    /* Admin Modal */
     #adminModal {
       display: none;
       position: fixed;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background-color: #282828;
-      padding: 24px;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       z-index: 1000;
-      width: 320px;
-    }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      z-index: 999;
+      width: 300px;
+      border: 1px solid #1db954;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Bar -->
   <div class="top-bar">
-    <div class="brand-logo" id="logoHeader" onclick="handleSecretClick()">ELIMYUZIC</div>
+    <div class="brand-logo" onclick="handleSecretClick()">ELIMYUZIC</div>
     <div class="search-container">
-      <input type="text" id="searchInput" placeholder="מה ברצונך להשמיע?">
+      <input type="text" id="searchInput" placeholder="חפש שיר או אמן...">
       <button class="search-btn" onclick="searchYoutube()">חפש</button>
     </div>
     <div></div>
   </div>
 
-  <!-- Main View -->
   <div class="main-layout">
-    <!-- Sidebar -->
     <div class="sidebar">
-      <div class="nav-item active" onclick="showSection('results')"> תוצאות חיפוש</div>
-      <div class="nav-item" onclick="showSection('playlist')"> הפלייליסט שלי</div>
+      <div class="nav-item active" onclick="showSection('results')">תוצאות חיפוש</div>
+      <div class="nav-item" onclick="showSection('playlist')">הפלייליסט שלי</div>
     </div>
 
-    <!-- Main Content -->
     <div class="content-area">
-      <div id="resultsSection">
-        <h2 class="section-title">תוצאות מוזיקה</h2>
-        <div class="grid-container" id="resultsGrid">
-          <p style="color: #b3b3b3;">הקלד שם שיר או אמן בתיבת החיפוש למעלה.</p>
-        </div>
+      <!-- נגן מרכזי -->
+      <div class="player-view" id="playerContainer">
+        <p style="color: #b3b3b3;">בחר שיר כדי להתחיל להשמיע</p>
       </div>
 
+      <!-- אזור תוצאות -->
+      <div id="resultsSection">
+        <h3 style="margin-bottom: 12px;">תוצאות מוזיקה</h3>
+        <div class="grid-container" id="resultsGrid"></div>
+      </div>
+
+      <!-- אזור פלייליסט -->
       <div id="playlistSection" style="display: none;">
-        <h2 class="section-title">הפלייליסט שלי</h2>
+        <h3 style="margin-bottom: 12px;">הפלייליסט שלי</h3>
         <div class="grid-container" id="playlistGrid"></div>
       </div>
     </div>
   </div>
 
-  <!-- Sticky Player -->
+  <!-- סרגל נגן תחתון -->
   <div class="player-bar">
-    <div id="playerTitle" style="font-size: 0.9rem; color: #b3b3b3;">לא מושמע שיר כרגע</div>
-    <div class="iframe-container" id="playerBox">
-      <div style="color: #535353; text-align: center; line-height: 70px;">נגן דממה</div>
+    <div class="now-playing">
+      <img id="barThumb" src="" alt="" style="display:none;">
+      <div class="track-info">
+        <div class="track-title" id="barTitle">אין שיר מופעל</div>
+        <div class="track-artist" id="barArtist">בחר שיר מתוך הרשימה</div>
+      </div>
     </div>
   </div>
 
-  <!-- Admin Panel Overlay -->
-  <div class="modal-overlay" id="overlay" onclick="closeAdmin()"></div>
+  <!-- פאנל מנהל -->
   <div id="adminModal">
-    <h3 style="margin-bottom: 12px; color: #1db954;">פאנל מנהל</h3>
-    <input type="file" id="adFileInput" accept="image/*" style="margin-bottom: 12px; width: 100%;">
+    <h3 style="margin-bottom: 10px; color: #1db954;">פאנל מנהל</h3>
+    <input type="file" id="adFileInput" accept="image/*" style="margin-bottom: 10px; width: 100%;">
     <button class="search-btn" style="width: 100%;" onclick="uploadAd()">העלה פרסומת</button>
-    <div id="adminStatus" style="margin-top: 10px; font-size: 0.8rem; color: #b3b3b3;"></div>
+    <button class="search-btn" style="width: 100%; background: #444; color: white; margin-top: 5px;" onclick="closeAdmin()">סגור</button>
   </div>
 
   <script>
@@ -288,7 +277,7 @@
     let adminToken = '';
     let myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
 
-    // 6 לחיצות נסתרות על הלוגו למעלה
+    // 6 לחיצות על ELIMYUZIC לקבלת קוד מנהל
     function handleSecretClick() {
       clickCount++;
       clearTimeout(clickTimer);
@@ -299,7 +288,6 @@
         if (code === '1059') {
           adminToken = code;
           document.getElementById('adminModal').style.display = 'block';
-          document.getElementById('overlay').style.display = 'block';
         } else if (code) {
           alert('קוד שגוי');
         }
@@ -310,14 +298,12 @@
 
     function closeAdmin() {
       document.getElementById('adminModal').style.display = 'none';
-      document.getElementById('overlay').style.display = 'none';
     }
 
-    // חיפוש ביוטיוב
+    // חיפוש ב-YouTube
     async function searchYoutube() {
       const query = document.getElementById('searchInput').value.trim();
       const grid = document.getElementById('resultsGrid');
-
       if (!query) return;
 
       grid.innerHTML = '<p style="color:#b3b3b3;">מחפש שירים...</p>';
@@ -342,18 +328,16 @@
           const card = document.createElement('div');
           card.className = 'media-card';
           card.innerHTML = `
-            <img src="${imgUrl}" alt="${title}">
-            <div class="title" title="${title}">${title}</div>
+            <img src="${imgUrl}">
+            <div class="title">${title}</div>
             <div class="sub-title">${channel}</div>
-            <div class="card-actions">
-              <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}')">הפעל</button>
-              <button class="btn-action" style="background:#333; color:white" onclick="addToPlaylist('${videoId}', '${escapeQuotes(title)}', '${imgUrl}', '${escapeQuotes(channel)}')">+ פלייליסט</button>
-            </div>
+            <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
+            <button class="btn-action" style="background:#333; color:white" onclick="addToPlaylist('${videoId}', '${escapeQuotes(title)}', '${imgUrl}', '${escapeQuotes(channel)}')">+ פלייליסט</button>
           `;
           grid.appendChild(card);
         });
       } catch (e) {
-        grid.innerHTML = '<p style="color:#ff5252;">שגיאה בחיבור לשרת החיפוש.</p>';
+        grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינת התוצאות.</p>';
       }
     }
 
@@ -361,15 +345,21 @@
       return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
-    function playSong(id, title) {
-      document.getElementById('playerTitle').innerText = title;
-      document.getElementById('playerBox').innerHTML = 
+    // השמעת שיר ועדכון הסרגל התחתון
+    function playSong(id, title, artist, img) {
+      document.getElementById('playerContainer').innerHTML = 
         `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+
+      document.getElementById('barTitle').innerText = title;
+      document.getElementById('barArtist').innerText = artist;
+      const thumb = document.getElementById('barThumb');
+      thumb.src = img;
+      thumb.style.display = 'block';
     }
 
-    function addToPlaylist(id, title, img, channel) {
+    function addToPlaylist(id, title, img, artist) {
       if (!myPlaylist.some(item => item.id === id)) {
-        myPlaylist.push({ id, title, img, channel });
+        myPlaylist.push({ id, title, img, artist });
         localStorage.setItem('elim_playlist', JSON.stringify(myPlaylist));
         renderPlaylist();
       }
@@ -388,13 +378,11 @@
         const card = document.createElement('div');
         card.className = 'media-card';
         card.innerHTML = `
-          <img src="${item.img}" alt="${item.title}">
-          <div class="title" title="${item.title}">${item.title}</div>
-          <div class="sub-title">${item.channel}</div>
-          <div class="card-actions">
-            <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}')">הפעל</button>
-            <button class="btn-action" style="background:#ff5252; color:white" onclick="removeFromPlaylist(${index})">הסר</button>
-          </div>
+          <img src="${item.img}">
+          <div class="title">${item.title}</div>
+          <div class="sub-title">${item.artist}</div>
+          <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
+          <button class="btn-action" style="background:#ff5252; color:white" onclick="removeFromPlaylist(${index})">הסר</button>
         `;
         grid.appendChild(card);
       });
@@ -411,29 +399,6 @@
       document.getElementById('playlistSection').style.display = section === 'playlist' ? 'block' : 'none';
     }
 
-    async function uploadAd() {
-      const fileInput = document.getElementById('adFileInput');
-      const status = document.getElementById('adminStatus');
-
-      if (!fileInput.files[0]) {
-        status.innerText = 'יש לבחור קובץ';
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('adminCode', adminToken);
-      formData.append('adFile', fileInput.files[0]);
-
-      try {
-        const res = await fetch('/api/admin/upload-ad', { method: 'POST', body: formData });
-        const data = await res.json();
-        status.innerText = data.success ? 'הועלה בהצלחה!' : 'שגיאה בהעלאה';
-      } catch (e) {
-        status.innerText = 'שגיאה בתקשורת';
-      }
-    }
-
-    // Enter Key Search Trigger
     document.getElementById('searchInput').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') searchYoutube();
     });
