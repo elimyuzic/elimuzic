@@ -4,180 +4,113 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ELIMYUZIC</title>
-  
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#121212">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="ELIMYUZIC">
-  
   <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body {
-      width: 100%;
-      height: 100%;
-      background-color: #121212;
-      color: #ffffff;
+      width: 100%; height: 100%;
+      background-color: #121212; color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow: hidden;
     }
-
-    body {
-      display: flex;
-      flex-direction: column;
-    }
+    body { display: flex; flex-direction: column; }
 
     /* Top Bar */
     .top-bar {
-      height: 52px;
-      background-color: #121212;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      border-bottom: 1px solid #282828;
-      z-index: 10;
+      height: 52px; background-color: #121212;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; border-bottom: 1px solid #282828; z-index: 10;
     }
-
-    .brand-logo-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-
-    .brand-logo-img { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; }
+    .brand-logo-container { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .brand-logo-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
     .brand-logo-text { color: #1db954; font-size: 1rem; font-weight: 800; }
 
     .search-container {
-      display: flex;
-      align-items: center;
-      background-color: #242424;
-      border-radius: 50px;
-      padding: 4px 10px;
-      flex: 1;
-      max-width: 200px;
-      margin: 0 8px;
+      display: flex; align-items: center; background-color: #242424;
+      border-radius: 50px; padding: 4px 10px; flex: 1; max-width: 200px; margin: 0 8px;
     }
-
     .search-container input {
-      background: transparent;
-      border: none;
-      color: #ffffff;
-      width: 100%;
-      outline: none;
-      padding-right: 4px;
-      font-size: 0.8rem;
+      background: transparent; border: none; color: #ffffff;
+      width: 100%; outline: none; padding-right: 4px; font-size: 0.8rem;
     }
-
     .search-btn {
-      background: #1db954;
-      border: none;
-      color: black;
-      border-radius: 20px;
-      padding: 4px 8px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 0.75rem;
+      background: #1db954; border: none; color: black;
+      border-radius: 20px; padding: 4px 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem;
     }
 
-    /* Main Content Area */
+    /* Content Area */
     .content-area {
-      flex: 1;
-      background: linear-gradient(to bottom, #1e1e1e, #121212);
-      padding: 12px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding-bottom: 130px;
+      flex: 1; background: linear-gradient(to bottom, #1e1e1e, #121212);
+      padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 130px;
     }
 
     .player-view {
-      width: 100%;
-      height: 180px;
-      background: #000;
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
+      width: 100%; height: 180px; background: #000;
+      border-radius: 8px; overflow: hidden; position: relative;
     }
-
     #ytPlayer { width: 100%; height: 100%; }
 
     .player-placeholder {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #181818;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #b3b3b3;
-      z-index: 5;
-      text-align: center;
-      padding: 10px;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: #181818; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; color: #b3b3b3; z-index: 5; text-align: center;
     }
 
     .ad-banner {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #000;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10;
     }
     .ad-banner img { max-width: 90%; max-height: 80%; object-fit: contain; }
 
     .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 10px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;
     }
-
     .media-card {
-      background-color: #181818;
-      padding: 8px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+      background-color: #181818; padding: 8px; border-radius: 8px;
+      display: flex; flex-direction: column; gap: 6px;
     }
-
     .media-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
     .media-card .title { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .media-card .sub-title { font-size: 0.7rem; color: #b3b3b3; }
 
     .btn-action {
-      background-color: #1db954;
-      border: none;
-      color: black;
-      font-weight: bold;
-      padding: 6px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.75rem;
+      background-color: #1db954; border: none; color: black;
+      font-weight: bold; padding: 6px; border-radius: 12px; cursor: pointer; font-size: 0.75rem;
+    }
+
+    /* Modals & Overlays */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85); z-index: 1000; display: none;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal {
+      background: #282828; padding: 20px; border-radius: 12px;
+      width: 100%; max-width: 320px; border: 1px solid #1db954; color: white;
+    }
+    .modal h3 { margin-bottom: 12px; color: #1db954; text-align: center; }
+    .modal input, .modal select {
+      width: 100%; padding: 10px; margin-bottom: 12px;
+      background: #181818; border: 1px solid #444; color: white; border-radius: 6px;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%);
+      background-color: #1db954; color: black; font-weight: bold;
+      padding: 10px 20px; border-radius: 20px; z-index: 9999;
+      display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     /* Bottom Player Bar */
     .spotify-player-bar {
-      position: fixed;
-      bottom: 56px;
-      left: 0; right: 0;
-      height: 56px;
-      background-color: #282828;
-      border-radius: 8px 8px 0 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      z-index: 90;
-      margin: 0 4px;
+      position: fixed; bottom: 56px; left: 0; right: 0; height: 56px;
+      background-color: #282828; border-radius: 8px 8px 0 0;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 12px; z-index: 90; margin: 0 4px;
     }
-
     .now-playing { display: flex; align-items: center; gap: 10px; overflow: hidden; }
     .now-playing img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; background: #121212; }
     .track-info { display: flex; flex-direction: column; overflow: hidden; }
@@ -186,77 +119,25 @@
 
     /* Bottom Nav Bar */
     .spotify-nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 56px;
-      background-color: #000000;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 1px solid #181818;
-      z-index: 100;
+      position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+      background-color: #000000; display: flex; justify-content: space-around; align-items: center;
+      border-top: 1px solid #181818; z-index: 100;
     }
-
     .nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      color: #b3b3b3;
-      background: none;
-      border: none;
-      font-size: 0.65rem;
-      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: #b3b3b3; background: none; border: none; font-size: 0.65rem; cursor: pointer;
     }
-
     .nav-btn.active { color: #ffffff; }
     .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
-
-    /* Overlays & Modals */
-    .gate-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: rgba(0, 0, 0, 0.95);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal {
-      background-color: #282828;
-      padding: 20px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 320px;
-      border: 1px solid #1db954;
-    }
-
-    .modal h3 { margin-bottom: 12px; color: #1db954; text-align: center; }
-    .modal input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      background: #181818;
-      border: 1px solid #444;
-      color: white;
-      border-radius: 6px;
-    }
-
-    #adminModal {
-      display: none;
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10000;
-    }
   </style>
 </head>
 <body>
 
+  <!-- Toast Notification -->
+  <div id="toast">נוסף לפלייליסט</div>
+
   <!-- Gate Overlay -->
-  <div class="gate-overlay" id="gateOverlay">
+  <div class="modal-overlay" id="gateOverlay" style="display: flex;">
     <div class="modal">
       <h3>ברוכים הבאים ל-ELIMYUZIC</h3>
       <p style="font-size: 0.8rem; color: #b3b3b3; margin-bottom: 12px; text-align: center;">הכנס שם משתמש לכניסה</p>
@@ -265,6 +146,17 @@
     </div>
   </div>
 
+  <!-- Add to Playlist Modal -->
+  <div class="modal-overlay" id="addToPlaylistModal">
+    <div class="modal">
+      <h3>בחר פלייליסט</h3>
+      <select id="playlistSelect"></select>
+      <button class="search-btn" style="width: 100%; margin-bottom: 8px;" onclick="confirmAddToPlaylist()">אישור</button>
+      <button class="search-btn" style="width: 100%; background: #444; color: white;" onclick="closePlaylistModal()">ביטול</button>
+    </div>
+  </div>
+
+  <!-- Top Bar -->
   <div class="top-bar">
     <div class="brand-logo-container" onclick="handleSecretClick()">
       <img src="icon.png" alt="Logo" class="brand-logo-img" onerror="this.style.display='none'">
@@ -297,12 +189,15 @@
     </div>
 
     <div id="playlistSection" style="display: none;">
-      <h4 style="margin-bottom: 8px;">הפלייליסט שלי</h4>
-      <div class="grid-container" id="playlistGrid"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h4>הפלייליסטים שלי</h4>
+        <button class="search-btn" onclick="createNewPlaylist()">+ פלייליסט חדש</button>
+      </div>
+      <div id="playlistsContainer"></div>
     </div>
   </div>
 
-  <!-- Bottom Mini Player -->
+  <!-- Bottom Player -->
   <div class="spotify-player-bar">
     <div class="now-playing">
       <img id="barThumb" src="" alt="" style="display:none;">
@@ -330,193 +225,124 @@
   </nav>
 
   <!-- Admin Modal -->
-  <div class="modal" id="adminModal">
-    <h3>פאנל מנהל</h3>
-    <label style="font-size:0.8rem;">העלאת תמונת פרסומת:</label>
-    <input type="file" id="adImgInput" accept="image/*">
-    <label style="font-size:0.8rem;">העלאת שמע פרסומת:</label>
-    <input type="file" id="adAudioInput" accept="audio/*">
-    <button class="search-btn" style="width: 100%; margin-bottom:12px;" onclick="saveAd()">שמור פרסומת</button>
-    <hr style="border-color:#444; margin:10px 0;">
-    <label style="font-size:0.8rem;">הוספת מנוי פרימיום:</label>
-    <input type="text" id="newPremUser" placeholder="שם משתמש">
-    <button class="search-btn" style="width: 100%; background:#007afe; color:white;" onclick="addPremiumUser()">הוסף מנוי</button>
-    <button class="search-btn" style="width: 100%; background: #444; color: white; margin-top: 10px;" onclick="closeAdmin()">סגור</button>
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal">
+      <h3>פאנל מנהל</h3>
+      <label style="font-size:0.8rem;">העלאת תמונת פרסומת (לכולם):</label>
+      <input type="file" id="adImgInput" accept="image/*">
+      <label style="font-size:0.8rem;">העלאת שמע פרסומת:</label>
+      <input type="file" id="adAudioInput" accept="audio/*">
+      <button class="search-btn" style="width: 100%; margin-bottom:12px;" onclick="saveAdGlobally()">פרסם לכל המשתמשים</button>
+      <button class="search-btn" style="width: 100%; background: #444; color: white;" onclick="closeAdmin()">סגור</button>
+    </div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     const YOUTUBE_API_KEY = 'AIzaSyDciIRdNamQuthn579qKWTM9CqXSyQzO7c';
-    let player;
-    let currentArtist = '';
-    let clickCount = 0, clickTimer = null;
-    let songCounter = 0;
-    let currentUser = null;
-    let isPremium = false;
-
-    let myPlaylist = [];
-    let premiumUsers = ['admin'];
-    let savedAd = null;
-
-    // טעינה בטוחה של הנתונים מהזיכרון המקומי
-    try {
-      myPlaylist = JSON.parse(localStorage.getItem('elim_playlist')) || [];
-      premiumUsers = JSON.parse(localStorage.getItem('elim_premium_users')) || ['admin'];
-      savedAd = JSON.parse(localStorage.getItem('elim_ad_data')) || null;
-    } catch(e) {
-      console.error("Local storage access error:", e);
-    }
+    let player, selectedTrackForPlaylist = null;
+    let playlists = JSON.parse(localStorage.getItem('elim_playlists_v2')) || { 'הפלייליסט שלי': [] };
+    let savedAd = JSON.parse(localStorage.getItem('elim_global_ad')) || null;
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('ytPlayer', {
-        height: '100%',
-        width: '100%',
-        playerVars: { 
-          'autoplay': 1, 
-          'controls': 1,
-          'playsinline': 1 
-        },
-        events: {
-          'onStateChange': onPlayerStateChange
-        }
+        height: '100%', width: '100%',
+        playerVars: { 'autoplay': 1, 'controls': 1, 'playsinline': 1 }
       });
     }
 
-    function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED && currentArtist) {
-        autoPlayNextArtistSong();
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function createNewPlaylist() {
+      const name = prompt('הכנס שם לפלייליסט החדש:');
+      if (name && !playlists[name]) {
+        playlists[name] = [];
+        savePlaylists();
+        renderPlaylists();
       }
     }
 
-    async function autoPlayNextArtistSong() {
-      try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(currentArtist)}&type=video&key=${YOUTUBE_API_KEY}`);
-        const data = await res.json();
-        if (data.items && data.items.length > 0) {
-          const randomIndex = Math.floor(Math.random() * data.items.length);
-          const nextTrack = data.items[randomIndex];
-          playSong(nextTrack.id.videoId, nextTrack.snippet.title, nextTrack.snippet.channelTitle, nextTrack.snippet.thumbnails.medium.url);
+    function savePlaylists() {
+      localStorage.setItem('elim_playlists_v2', JSON.stringify(playlists));
+    }
+
+    function openAddToPlaylistModal(track) {
+      selectedTrackForPlaylist = track;
+      const select = document.getElementById('playlistSelect');
+      select.innerHTML = '';
+      Object.keys(playlists).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name;
+        select.appendChild(opt);
+      });
+      document.getElementById('addToPlaylistModal').style.display = 'flex';
+    }
+
+    function closePlaylistModal() {
+      document.getElementById('addToPlaylistModal').style.display = 'none';
+    }
+
+    function confirmAddToPlaylist() {
+      const playlistName = document.getElementById('playlistSelect').value;
+      if (playlistName && selectedTrackForPlaylist) {
+        if (!playlists[playlistName].some(t => t.id === selectedTrackForPlaylist.id)) {
+          playlists[playlistName].push(selectedTrackForPlaylist);
+          savePlaylists();
+          renderPlaylists();
+          showToast('נוסף לפלייליסט');
         }
-      } catch(e) {
-        console.error('Autoplay error', e);
       }
+      closePlaylistModal();
     }
 
-    function handleSecretClick() {
-      clickCount++;
-      clearTimeout(clickTimer);
-      if (clickCount === 6) {
-        clickCount = 0;
-        const code = prompt('הכנס קוד מנהל:');
-        if (code === '1059') {
-          document.getElementById('adminModal').style.display = 'block';
-        } else if (code) alert('קוד שגוי');
-      } else {
-        clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
-      }
-    }
+    function renderPlaylists() {
+      const container = document.getElementById('playlistsContainer');
+      container.innerHTML = '';
 
-    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
+      Object.keys(playlists).forEach(pName => {
+        const group = document.createElement('div');
+        group.style.marginBottom = '20px';
+        group.innerHTML = `<h5 style="color:#1db954; margin-bottom:8px;">${pName}</h5>`;
+        
+        const grid = document.createElement('div');
+        grid.className = 'grid-container';
 
-    function login() {
-      const user = document.getElementById('loginUsername').value.trim();
-      if (!user) { alert('יש להזין שם משתמש'); return; }
-      currentUser = user;
-      isPremium = premiumUsers.includes(user);
-      document.getElementById('gateOverlay').style.display = 'none';
-    }
-
-    function logout() {
-      currentUser = null;
-      document.getElementById('loginUsername').value = '';
-      document.getElementById('gateOverlay').style.display = 'flex';
-    }
-
-    function addPremiumUser() {
-      const newUser = document.getElementById('newPremUser').value.trim();
-      if (newUser && !premiumUsers.includes(newUser)) {
-        premiumUsers.push(newUser);
-        localStorage.setItem('elim_premium_users', JSON.stringify(premiumUsers));
-        alert('נוסף בהצלחה!');
-        document.getElementById('newPremUser').value = '';
-      }
-    }
-
-    function saveAd() {
-      const imgFile = document.getElementById('adImgInput').files[0];
-      const audioFile = document.getElementById('adAudioInput').files[0];
-      if (!imgFile) { alert('יש לבחור תמונת פרסומת'); return; }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const adData = { img: e.target.result, audio: null };
-        if (audioFile) {
-          const audioReader = new FileReader();
-          audioReader.onload = function(e2) {
-            adData.audio = e2.target.result;
-            localStorage.setItem('elim_ad_data', JSON.stringify(adData));
-            savedAd = adData;
-            alert('הפרסומת נשמרה!');
-          };
-          audioReader.readAsDataURL(audioFile);
+        if (playlists[pName].length === 0) {
+          grid.innerHTML = '<p style="color:#888; font-size:0.8rem;">אין שירים בפלייליסט זה</p>';
         } else {
-          localStorage.setItem('elim_ad_data', JSON.stringify(adData));
-          savedAd = adData;
-          alert('הפרסומת נשמרה!');
+          playlists[pName].forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.innerHTML = `
+              <img src="${item.img}">
+              <div class="title">${item.title}</div>
+              <div class="sub-title">${item.artist}</div>
+              <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
+              <button class="btn-action" style="background:#007afe; color:white;" onclick="downloadSong('${item.id}', '${escapeQuotes(item.title)}')">הורד</button>
+              <button class="btn-action" style="background:#ff5252; color:white;" onclick="removeFromPlaylist('${pName}', ${idx})">הסר</button>
+            `;
+            grid.appendChild(card);
+          });
         }
-      };
-      reader.readAsDataURL(imgFile);
+        group.appendChild(grid);
+        container.appendChild(group);
+      });
     }
 
-    function playSong(id, title, artist, img) {
-      currentArtist = artist;
-      songCounter++;
-      
-      const placeholder = document.getElementById('playerPlaceholder');
-      if (placeholder) placeholder.style.display = 'none';
-
-      if (!isPremium && songCounter % 6 === 0 && savedAd) {
-        triggerAd(() => startTrack(id, title, artist, img));
-      } else {
-        startTrack(id, title, artist, img);
-      }
+    function removeFromPlaylist(pName, index) {
+      playlists[pName].splice(index, 1);
+      savePlaylists();
+      renderPlaylists();
     }
 
-    function triggerAd(callback) {
-      const banner = document.getElementById('adBanner');
-      const adImg = document.getElementById('adImage');
-      const adAudio = document.getElementById('adAudio');
-
-      adImg.src = savedAd.img;
-      banner.style.display = 'flex';
-
-      if (player && player.pauseVideo) player.pauseVideo();
-
-      if (savedAd.audio) {
-        adAudio.src = savedAd.audio;
-        adAudio.style.display = 'block';
-        adAudio.play();
-        adAudio.onended = () => {
-          banner.style.display = 'none';
-          callback();
-        };
-      } else {
-        setTimeout(() => {
-          banner.style.display = 'none';
-          callback();
-        }, 5000);
-      }
-    }
-
-    function startTrack(id, title, artist, img) {
-      if (player && player.loadVideoById) {
-        player.loadVideoById(id);
-      }
-      document.getElementById('barTitle').innerText = title;
-      document.getElementById('barArtist').innerText = artist;
-      const thumb = document.getElementById('barThumb');
-      thumb.src = img;
-      thumb.style.display = 'block';
+    function downloadSong(id, title) {
+      window.open(`https://www.youtubepp.com/watch?v=${id}`, '_blank');
     }
 
     async function searchYoutube() {
@@ -530,13 +356,8 @@
       try {
         const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
         const data = await res.json();
-
-        if (!data.items || data.items.length === 0) {
-          grid.innerHTML = '<p style="color:#b3b3b3;">לא נמצאו תוצאות.</p>';
-          return;
-        }
-
         grid.innerHTML = '';
+
         data.items.forEach(item => {
           const videoId = item.id.videoId;
           const title = item.snippet.title;
@@ -550,7 +371,8 @@
             <div class="title">${title}</div>
             <div class="sub-title">${channel}</div>
             <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
-            <button class="btn-action" style="background:#333; color:white" onclick="addToPlaylist('${videoId}', '${escapeQuotes(title)}', '${imgUrl}', '${escapeQuotes(channel)}')">+ פלייליסט</button>
+            <button class="btn-action" style="background:#007afe; color:white;" onclick="downloadSong('${videoId}', '${escapeQuotes(title)}')">הורד</button>
+            <button class="btn-action" style="background:#333; color:white;" onclick="openAddToPlaylistModal({id:'${videoId}', title:'${escapeQuotes(title)}', artist:'${escapeQuotes(channel)}', img:'${imgUrl}'})">+ פלייליסט</button>
           `;
           grid.appendChild(card);
         });
@@ -559,71 +381,40 @@
       }
     }
 
+    function playSong(id, title, artist, img) {
+      document.getElementById('playerPlaceholder').style.display = 'none';
+      if (player && player.loadVideoById) player.loadVideoById(id);
+      document.getElementById('barTitle').innerText = title;
+      document.getElementById('barArtist').innerText = artist;
+      const thumb = document.getElementById('barThumb');
+      thumb.src = img; thumb.style.display = 'block';
+    }
+
+    function saveAdGlobally() {
+      const imgFile = document.getElementById('adImgInput').files[0];
+      if (!imgFile) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        savedAd = { img: e.target.result };
+        localStorage.setItem('elim_global_ad', JSON.stringify(savedAd));
+        alert('הפרסומת עודכנה לכל המשתמשים!');
+        closeAdmin();
+      };
+      reader.readAsDataURL(imgFile);
+    }
+
     function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
-
-    function addToPlaylist(id, title, img, artist) {
-      if (!myPlaylist.some(item => item.id === id)) {
-        myPlaylist.push({ id, title, img, artist });
-        localStorage.setItem('elim_playlist', JSON.stringify(myPlaylist));
-        renderPlaylist();
-      }
+    function login() { document.getElementById('gateOverlay').style.display = 'none'; }
+    function logout() { document.getElementById('gateOverlay').style.display = 'flex'; }
+    function showSection(sec) {
+      document.getElementById('resultsSection').style.display = sec === 'results' ? 'block' : 'none';
+      document.getElementById('playlistSection').style.display = sec === 'playlist' ? 'block' : 'none';
     }
+    function focusSearch() { showSection('results'); document.getElementById('searchInput').focus(); }
+    function handleSecretClick() { document.getElementById('adminModal').style.display = 'flex'; }
+    function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
 
-    function renderPlaylist() {
-      const grid = document.getElementById('playlistGrid');
-      if(!grid) return;
-      grid.innerHTML = '';
-      if (myPlaylist.length === 0) {
-        grid.innerHTML = '<p style="color:#b3b3b3;">הפלייליסט ריק.</p>';
-        return;
-      }
-      myPlaylist.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = 'media-card';
-        card.innerHTML = `
-          <img src="${item.img}">
-          <div class="title">${item.title}</div>
-          <div class="sub-title">${item.artist}</div>
-          <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
-          <button class="btn-action" style="background:#ff5252; color:white" onclick="removeFromPlaylist(${index})">הסר</button>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function removeFromPlaylist(index) {
-      myPlaylist.splice(index, 1);
-      localStorage.setItem('elim_playlist', JSON.stringify(myPlaylist));
-      renderPlaylist();
-    }
-
-    function showSection(section) {
-      document.getElementById('resultsSection').style.display = section === 'results' ? 'block' : 'none';
-      document.getElementById('playlistSection').style.display = section === 'playlist' ? 'block' : 'none';
-
-      document.getElementById('navHomeBtn').classList.toggle('active', section === 'results');
-      document.getElementById('navLibraryBtn').classList.toggle('active', section === 'playlist');
-      document.getElementById('navSearchBtn').classList.remove('active');
-    }
-
-    function focusSearch() {
-      showSection('results');
-      document.getElementById('navSearchBtn').classList.add('active');
-      document.getElementById('navHomeBtn').classList.remove('active');
-      document.getElementById('searchInput').focus();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') searchYoutube();
-      });
-
-      document.getElementById('loginUsername').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') login();
-      });
-
-      renderPlaylist();
-    });
+    document.addEventListener('DOMContentLoaded', renderPlaylists);
   </script>
 </body>
 </html>
