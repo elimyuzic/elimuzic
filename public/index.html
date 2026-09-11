@@ -430,14 +430,19 @@
       }
     }
 
-    async function searchYoutube(query) {
+    async function searchYoutube(query, channelId = null) {
       const grid = document.getElementById('resultsGrid');
-      document.getElementById('resultsTitle').innerText = 'תוצאות שירים';
+      document.getElementById('resultsTitle').innerText = channelId ? 'שירי הערוץ' : 'תוצאות שירים';
       grid.innerHTML = '<p style="color:#b3b3b3;">מחפש שירים...</p>';
       showSection('results');
 
       try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
+        let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+        if (channelId) {
+          url += `&channelId=${channelId}`;
+        }
+
+        const res = await fetch(url);
         const data = await res.json();
         grid.innerHTML = '';
 
@@ -470,12 +475,12 @@
 
     async function searchChannels(query) {
       const grid = document.getElementById('resultsGrid');
-      document.getElementById('resultsTitle').innerText = 'תוצאות אמנים';
+      document.getElementById('resultsTitle').innerText = 'תוצאות אמנים וערוצים';
       grid.innerHTML = '<p style="color:#b3b3b3;">מחפש אמנים וערוצים...</p>';
       showSection('results');
 
       try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=channel&key=${YOUTUBE_API_KEY}`);
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=channel&key=${YOUTUBE_API_KEY}`);
         const data = await res.json();
         grid.innerHTML = '';
 
@@ -484,24 +489,50 @@
           return;
         }
 
+        // 1. כרטיס מיוחד ל"לחבר הכל" (מופיע בראש התוצאות)
         const mainImg = data.items[0].snippet.thumbnails.medium ? data.items[0].snippet.thumbnails.medium.url : '';
-
         const aggregatedCard = document.createElement('div');
         aggregatedCard.className = 'media-card artist-card';
         aggregatedCard.style.gridColumn = '1 / -1';
-        aggregatedCard.style.padding = '16px';
+        aggregatedCard.style.padding = '14px';
         aggregatedCard.style.textAlign = 'center';
+        aggregatedCard.style.border = '1px solid #1db954';
+        aggregatedCard.style.marginBottom = '10px';
 
         aggregatedCard.innerHTML = `
-          <img src="${mainImg}" style="width: 100px; height: 100px; margin: 0 auto 10px auto; display: block;">
-          <div class="title" style="font-size: 1.1rem; margin-bottom: 4px;">${query}</div>
-          <div class="sub-title" style="margin-bottom: 12px; color: #1db954;">נמצאו מספר ערוצים משוייכים</div>
-          <button class="btn-action" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; max-width: 250px; margin: 0 auto;" onclick="searchYoutube('${escapeQuotes(query)}')">
-            לחבר הכל - הצג את כל השירים
+          <img src="${mainImg}" style="width: 80px; height: 80px; margin: 0 auto 8px auto; display: block;">
+          <div class="title" style="font-size: 1.05rem; margin-bottom: 2px;">${query}</div>
+          <div class="sub-title" style="margin-bottom: 10px; color: #1db954;">איחוד כל הערוצים והתוצאות</div>
+          <button class="btn-action" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 240px; margin: 0 auto;" onclick="searchYoutube('${escapeQuotes(query)}')">
+            🔗 לחבר הכל (הצג את כל השירים)
           </button>
         `;
-        
         grid.appendChild(aggregatedCard);
+
+        // 2. כותרת הפרדה לערוצים בנפרד
+        const divider = document.createElement('div');
+        divider.style.gridColumn = '1 / -1';
+        divider.style.fontSize = '0.85rem';
+        divider.style.color = '#b3b3b3';
+        divider.style.marginTop = '6px';
+        divider.innerText = 'ערוצים בנפרד (ללא חיבור):';
+        grid.appendChild(divider);
+
+        // 3. הצגת כל הערוצים הבודדים בנפרד
+        data.items.forEach(item => {
+          const channelId = item.id.channelId;
+          const title = item.snippet.channelTitle;
+          const imgUrl = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '';
+
+          const card = document.createElement('div');
+          card.className = 'media-card artist-card';
+          card.innerHTML = `
+            <img src="${imgUrl}">
+            <div class="title" style="text-align:center;">${title}</div>
+            <button class="btn-action" onclick="searchYoutube('', '${channelId}')">כניסה לערוץ</button>
+          `;
+          grid.appendChild(card);
+        });
 
       } catch (e) {
         grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינת נתוני האמן.</p>';
