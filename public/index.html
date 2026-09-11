@@ -73,6 +73,7 @@
       display: flex; flex-direction: column; gap: 6px;
     }
     .media-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+    .media-card.artist-card img { border-radius: 50%; }
     .media-card .title { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .media-card .sub-title { font-size: 0.7rem; color: #b3b3b3; }
 
@@ -80,15 +81,6 @@
       background-color: #1db954; border: none; color: black;
       font-weight: bold; padding: 6px; border-radius: 12px; cursor: pointer; font-size: 0.75rem; text-align: center;
     }
-
-    .download-group {
-      display: flex; gap: 4px;
-    }
-    .btn-dl {
-      flex: 1; padding: 6px 0; font-size: 0.7rem; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white;
-    }
-    .btn-dl-mp3 { background-color: #007afe; }
-    .btn-dl-mp4 { background-color: #ff9500; }
 
     /* Modals & Overlays */
     .modal-overlay {
@@ -98,13 +90,39 @@
     }
     .modal {
       background: #282828; padding: 20px; border-radius: 12px;
-      width: 100%; max-width: 320px; border: 1px solid #1db954; color: white;
+      width: 100%; max-width: 360px; border: 1px solid #1db954; color: white;
+      max-height: 90vh; overflow-y: auto;
     }
-    .modal h3 { margin-bottom: 12px; color: #1db954; text-align: center; }
-    .modal input, .modal select {
+    .modal h3 { margin-bottom: 12px; color: #1db954; text-align: center; font-size: 1.4rem; }
+    .modal label { font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 4px; color: #ddd; }
+    
+    .file-input-box {
+      background: #181818; border: 1px solid #444; border-radius: 6px; padding: 8px; margin-bottom: 12px;
+    }
+    .file-input-box input[type="file"] { width: 100%; color: #aaa; font-size: 0.8rem; }
+    
+    .modal input[type="text"], .modal select {
       width: 100%; padding: 10px; margin-bottom: 12px;
-      background: #181818; border: 1px solid #444; color: white; border-radius: 6px;
+      background: #181818; border: 1px solid #444; color: white; border-radius: 6px; outline: none;
     }
+
+    .btn-save-ad {
+      width: 100%; background: #1db954; color: black; font-weight: bold;
+      padding: 12px; border: none; border-radius: 25px; cursor: pointer; font-size: 0.9rem; margin-bottom: 12px;
+    }
+    .btn-add-subscriber {
+      width: 100%; background: #007afe; color: white; font-weight: bold;
+      padding: 12px; border: none; border-radius: 25px; cursor: pointer; font-size: 0.9rem; margin-bottom: 12px;
+    }
+    .btn-close-modal {
+      width: 100%; background: #555; color: white; font-weight: bold;
+      padding: 10px; border: none; border-radius: 25px; cursor: pointer; font-size: 0.85rem;
+    }
+
+    .item-list { margin-bottom: 12px; background: #181818; border-radius: 6px; padding: 6px; }
+    .item-row { display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #333; font-size: 0.8rem; }
+    .item-row:last-child { border-bottom: none; }
+    .btn-del-item { background: #ff5252; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 0.75rem; }
 
     /* Toast Notification */
     #toast {
@@ -173,7 +191,7 @@
     </div>
     <div class="search-container">
       <input type="text" id="searchInput" placeholder="חפש שיר...">
-      <button class="search-btn" onclick="searchYoutube()">חפש</button>
+      <button class="search-btn" onclick="triggerSearch()">חפש</button>
     </div>
     <button class="search-btn" style="background:#333; color:white; padding: 4px 8px;" onclick="logout()">יציאה</button>
   </div>
@@ -192,11 +210,13 @@
       </div>
     </div>
 
+    <!-- Results Section -->
     <div id="resultsSection">
-      <h4 style="margin-bottom: 8px;">תוצאות</h4>
+      <h4 id="resultsTitle" style="margin-bottom: 8px;">תוצאות</h4>
       <div class="grid-container" id="resultsGrid"></div>
     </div>
 
+    <!-- Playlist Section -->
     <div id="playlistSection" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h4>הפלייליסטים שלי</h4>
@@ -219,31 +239,55 @@
 
   <!-- Bottom Nav -->
   <nav class="spotify-nav">
-    <button class="nav-btn active" id="navHomeBtn" onclick="showSection('results')">
+    <button class="nav-btn active" id="navHomeBtn" onclick="setActiveNav('navHomeBtn'); showSection('results');">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span>בית</span>
     </button>
-    <button class="nav-btn" id="navSearchBtn" onclick="focusSearch()">
+    <button class="nav-btn" id="navSearchBtn" onclick="setActiveNav('navSearchBtn'); focusSearch('song');">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
       <span>חיפוש</span>
     </button>
-    <button class="nav-btn" id="navLibraryBtn" onclick="showSection('playlist')">
+    <button class="nav-btn" id="navLibraryBtn" onclick="setActiveNav('navLibraryBtn'); showSection('playlist');">
       <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
       <span>הספריה שלי</span>
     </button>
+    <button class="nav-btn" id="navArtistBtn" onclick="setActiveNav('navArtistBtn'); focusSearch('artist');">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>אמן</span>
+    </button>
   </nav>
 
-  <!-- Admin Modal -->
+  <!-- Admin Modal (תואם לתמונה) -->
   <div class="modal-overlay" id="adminModal">
     <div class="modal">
       <h3>פאנל מנהל</h3>
-      <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת תמונת פרסומת:</label>
-      <input type="file" id="adImgInput" accept="image/*">
-      <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת שמע פרסומת:</label>
-      <input type="file" id="adAudioInput" accept="audio/*">
-      <button class="search-btn" style="width: 100%; margin-bottom:8px; padding: 10px;" onclick="saveAdGlobally()">פרסם לכל המשתמשים</button>
-      <button class="search-btn" style="width: 100%; margin-bottom:12px; background:#ff5252; color:white; padding: 8px;" onclick="removeGlobalAd()">הסר פרסומת קיימת</button>
-      <button class="search-btn" style="width: 100%; background: #444; color: white;" onclick="closeAdmin()">סגור</button>
+      
+      <label>העלאת תמונת פרסומת:</label>
+      <div class="file-input-box">
+        <input type="file" id="adImgInput" accept="image/*">
+      </div>
+
+      <label>העלאת שמע פרסומת:</label>
+      <div class="file-input-box">
+        <input type="file" id="adAudioInput" accept="audio/*">
+      </div>
+
+      <button class="btn-save-ad" onclick="saveAdGlobally()">שמור פרסומת</button>
+
+      <!-- רשימת פרסומות קיימות -->
+      <div id="adsListContainer" class="item-list"></div>
+
+      <hr style="border: 0; border-top: 1px solid #444; margin: 12px 0;">
+
+      <label>הוספת מנוי פרימיום:</label>
+      <input type="text" id="subUsernameInput" placeholder="שם משתמש">
+
+      <button class="btn-add-subscriber" onclick="addSubscriber()">הוסף מנוי</button>
+
+      <!-- רשימת מנויים קיימים -->
+      <div id="subsListContainer" class="item-list"></div>
+
+      <button class="btn-close-modal" onclick="closeAdmin()">סגור</button>
     </div>
   </div>
 
@@ -252,7 +296,9 @@
     const YOUTUBE_API_KEY = 'AIzaSyDciIRdNamQuthn579qKWTM9CqXSyQzO7c';
     let player, selectedTrackForPlaylist = null;
     let playlists = JSON.parse(localStorage.getItem('elim_playlists_v2')) || { 'הפלייליסט שלי': [] };
-    let savedAd = JSON.parse(localStorage.getItem('elim_global_ad')) || null;
+    let globalAds = JSON.parse(localStorage.getItem('elim_ads_list')) || [];
+    let subscribers = JSON.parse(localStorage.getItem('elim_subscribers_list')) || [];
+    let currentSearchMode = 'song'; // 'song' or 'artist'
     
     let logoClickCount = 0;
     let logoClickTimer;
@@ -266,6 +312,7 @@
         logoClickCount = 0;
         const pass = prompt('הכנס סיסמת מנהל:');
         if (pass === '1059') {
+          renderAdminLists();
           document.getElementById('adminModal').style.display = 'flex';
         } else if (pass !== null) {
           alert('סיסמה שגויה!');
@@ -285,6 +332,11 @@
       toast.innerText = msg;
       toast.style.display = 'block';
       setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function setActiveNav(btnId) {
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(btnId).classList.add('active');
     }
 
     function createNewPlaylist() {
@@ -353,10 +405,6 @@
               <div class="title">${item.title}</div>
               <div class="sub-title">${item.artist}</div>
               <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
-              <div class="download-group">
-                <button class="btn-dl btn-dl-mp3" onclick="downloadDirectFile('${item.id}', '${escapeQuotes(item.title)}', 'mp3')">MP3</button>
-                <button class="btn-dl btn-dl-mp4" onclick="downloadDirectFile('${item.id}', '${escapeQuotes(item.title)}', 'mp4')">MP4</button>
-              </div>
               <button class="btn-action" style="background:#ff5252; color:white;" onclick="removeFromPlaylist('${pName}', ${idx})">הסר</button>
             `;
             grid.appendChild(card);
@@ -373,31 +421,32 @@
       renderPlaylists();
     }
 
-    function downloadDirectFile(videoId, title, format) {
-      showToast(`מכין הורדת ${format.toUpperCase()}...`);
-      const targetUrl = `https://api.vevioz.com/api/button/${format}/${videoId}`;
-      
-      const link = document.createElement('a');
-      link.href = targetUrl;
-      link.download = `${title}.${format}`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    async function searchYoutube() {
+    function triggerSearch() {
       const query = document.getElementById('searchInput').value.trim();
-      const grid = document.getElementById('resultsGrid');
       if (!query) return;
 
-      grid.innerHTML = '<p style="color:#b3b3b3;">מחפש...</p>';
+      if (currentSearchMode === 'artist') {
+        searchChannels(query);
+      } else {
+        searchYoutube(query);
+      }
+    }
+
+    async function searchYoutube(query) {
+      const grid = document.getElementById('resultsGrid');
+      document.getElementById('resultsTitle').innerText = 'תוצאות שירים';
+      grid.innerHTML = '<p style="color:#b3b3b3;">מחפש שירים...</p>';
       showSection('results');
 
       try {
         const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
         const data = await res.json();
         grid.innerHTML = '';
+
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = '<p style="color:#b3b3b3;">לא נמצאו תוצאות.</p>';
+          return;
+        }
 
         data.items.forEach(item => {
           const videoId = item.id.videoId;
@@ -412,16 +461,47 @@
             <div class="title">${title}</div>
             <div class="sub-title">${channel}</div>
             <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
-            <div class="download-group">
-              <button class="btn-dl btn-dl-mp3" onclick="downloadDirectFile('${videoId}', '${escapeQuotes(title)}', 'mp3')">MP3</button>
-              <button class="btn-dl btn-dl-mp4" onclick="downloadDirectFile('${videoId}', '${escapeQuotes(title)}', 'mp4')">MP4</button>
-            </div>
             <button class="btn-action" style="background:#333; color:white;" onclick="openAddToPlaylistModal({id:'${videoId}', title:'${escapeQuotes(title)}', artist:'${escapeQuotes(channel)}', img:'${imgUrl}'})">+ פלייליסט</button>
           `;
           grid.appendChild(card);
         });
       } catch (e) {
         grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינה.</p>';
+      }
+    }
+
+    async function searchChannels(query) {
+      const grid = document.getElementById('resultsGrid');
+      document.getElementById('resultsTitle').innerText = 'תוצאות אמנים وعרוצים';
+      grid.innerHTML = '<p style="color:#b3b3b3;">מחפש ערוצים...</p>';
+      showSection('results');
+
+      try {
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=channel&key=${YOUTUBE_API_KEY}`);
+        const data = await res.json();
+        grid.innerHTML = '';
+
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = '<p style="color:#b3b3b3;">לא נמצאו ערוצים.</p>';
+          return;
+        }
+
+        data.items.forEach(item => {
+          const channelId = item.id.channelId;
+          const title = item.snippet.channelTitle;
+          const imgUrl = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '';
+
+          const card = document.createElement('div');
+          card.className = 'media-card artist-card';
+          card.innerHTML = `
+            <img src="${imgUrl}">
+            <div class="title" style="text-align:center;">${title}</div>
+            <button class="btn-action" onclick="searchYoutube('${escapeQuotes(title)}')">הצג שירים</button>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינת ערוצים.</p>';
       }
     }
 
@@ -434,6 +514,7 @@
       thumb.src = img; thumb.style.display = 'block';
     }
 
+    /* Admin Management */
     function saveAdGlobally() {
       const imgFile = document.getElementById('adImgInput').files[0];
       const audioFile = document.getElementById('adAudioInput').files[0];
@@ -445,31 +526,99 @@
 
       const readerImg = new FileReader();
       readerImg.onload = function(eImg) {
-        const adData = { img: eImg.target.result };
+        const adData = { id: Date.now(), img: eImg.target.result };
 
         if (audioFile) {
           const readerAudio = new FileReader();
           readerAudio.onload = function(eAudio) {
             adData.audio = eAudio.target.result;
-            localStorage.setItem('elim_global_ad', JSON.stringify(adData));
-            alert('הפרסומת פורסמה בהצלחה לכל המשתמשים!');
-            closeAdmin();
+            globalAds.push(adData);
+            localStorage.setItem('elim_ads_list', JSON.stringify(globalAds));
+            alert('הפרסומת נשמרה בהצלחה!');
+            clearAdInputs();
+            renderAdminLists();
           };
           readerAudio.readAsDataURL(audioFile);
         } else {
-          localStorage.setItem('elim_global_ad', JSON.stringify(adData));
-          alert('הפרסומת פורסמה בהצלחה לכל המשתמשים!');
-          closeAdmin();
+          globalAds.push(adData);
+          localStorage.setItem('elim_ads_list', JSON.stringify(globalAds));
+          alert('הפרסומת נשמרה בהצלחה!');
+          clearAdInputs();
+          renderAdminLists();
         }
       };
       readerImg.readAsDataURL(imgFile);
     }
 
-    function removeGlobalAd() {
-      localStorage.removeItem('elim_global_ad');
-      savedAd = null;
-      alert('הפרסומת הוסרה בהצלחה!');
-      closeAdmin();
+    function clearAdInputs() {
+      document.getElementById('adImgInput').value = '';
+      document.getElementById('adAudioInput').value = '';
+    }
+
+    function deleteAd(id) {
+      globalAds = globalAds.filter(ad => ad.id !== id);
+      localStorage.setItem('elim_ads_list', JSON.stringify(globalAds));
+      renderAdminLists();
+    }
+
+    function addSubscriber() {
+      const username = document.getElementById('subUsernameInput').value.trim();
+      if (!username) {
+        alert('יש להכניס שם משתמש');
+        return;
+      }
+
+      if (!subscribers.includes(username)) {
+        subscribers.push(username);
+        localStorage.setItem('elim_subscribers_list', JSON.stringify(subscribers));
+        alert(`המנוי ${username} נוסף בהצלחה!`);
+        document.getElementById('subUsernameInput').value = '';
+        renderAdminLists();
+      } else {
+        alert('משתמש זה כבר קיים ברשימת המנויים');
+      }
+    }
+
+    function deleteSubscriber(name) {
+      subscribers = subscribers.filter(s => s !== name);
+      localStorage.setItem('elim_subscribers_list', JSON.stringify(subscribers));
+      renderAdminLists();
+    }
+
+    function renderAdminLists() {
+      // רשימת פרסומות
+      const adsContainer = document.getElementById('adsListContainer');
+      if (globalAds.length === 0) {
+        adsContainer.innerHTML = '<p style="font-size:0.75rem; color:#888;">אין פרסומות שמורות</p>';
+      } else {
+        adsContainer.innerHTML = '<strong style="font-size:0.8rem; display:block; margin-bottom:4px;">פרסומות קיימות (' + globalAds.length + '):</strong>';
+        globalAds.forEach((ad, i) => {
+          const row = document.createElement('div');
+          row.className = 'item-row';
+          row.innerHTML = `
+            <span>פרסומת #${i+1} ${ad.audio ? '(עם שמע)' : ''}</span>
+            <button class="btn-del-item" onclick="deleteAd(${ad.id})">מחק</button>
+          `;
+          adsContainer.appendChild(row);
+        });
+      }
+
+      // רשימת מנויים
+      const subsContainer = document.getElementById('subsListContainer');
+      if (subscribers.length === 0) {
+        subsContainer.innerHTML = '<p style="font-size:0.75rem; color:#888;">אין מנויי פרימיום</p>';
+      } else {
+        subsContainer.innerHTML = '<strong style="font-size:0.8rem; display:block; margin-bottom:4px;">מנויים קיימים (' + subscribers.length + '):</strong>';
+        subscribers.forEach(sub => {
+          const row = document.createElement('div');
+          row.className = 'item-row';
+          row.innerHTML = `
+            <span>${sub}</span>
+            <button class="btn-del-item" onclick="deleteSubscriber('${sub}')">מחק</button>
+          `;
+          subsContainer.appendChild(row);
+        });
+      }
     }
 
     function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
@@ -479,7 +628,15 @@
       document.getElementById('resultsSection').style.display = sec === 'results' ? 'block' : 'none';
       document.getElementById('playlistSection').style.display = sec === 'playlist' ? 'block' : 'none';
     }
-    function focusSearch() { showSection('results'); document.getElementById('searchInput').focus(); }
+    
+    function focusSearch(mode) {
+      currentSearchMode = mode;
+      showSection('results');
+      const input = document.getElementById('searchInput');
+      input.placeholder = mode === 'artist' ? 'חפש אמן/ערוץ...' : 'חפש שיר...';
+      input.focus();
+    }
+    
     function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
 
     document.addEventListener('DOMContentLoaded', renderPlaylists);
