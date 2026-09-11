@@ -437,7 +437,7 @@
       showSection('results');
 
       try {
-        let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+        let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
         if (channelId) {
           url += `&channelId=${channelId}`;
         }
@@ -473,6 +473,71 @@
       }
     }
 
+    /* חיבור אמיתי של כל הערוצים יחד */
+    async function searchCombinedArtistSongs(query, channelIds) {
+      const grid = document.getElementById('resultsGrid');
+      document.getElementById('resultsTitle').innerText = 'כל השירים המאוחדים מכל הערוצים';
+      grid.innerHTML = '<p style="color:#b3b3b3;">מקבץ את כל השירים מכל הערוצים...</p>';
+      showSection('results');
+
+      try {
+        // ביצוע בקשות במקביל לכל הערוצים שנמצאו + חיפוש טקסטואלי כללי
+        const fetchPromises = channelIds.map(cId => 
+          fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&channelId=${cId}&type=video&key=${YOUTUBE_API_KEY}`)
+            .then(res => res.json())
+        );
+
+        // הווספת חיפוש כללי
+        fetchPromises.push(
+          fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`)
+            .then(res => res.json())
+        );
+
+        const results = await Promise.all(fetchPromises);
+        let allVideos = [];
+        const seenIds = new Set();
+
+        results.forEach(data => {
+          if (data && data.items) {
+            data.items.forEach(item => {
+              if (item.id && item.id.videoId && !seenIds.has(item.id.videoId)) {
+                seenIds.add(item.id.videoId);
+                allVideos.push(item);
+              }
+            });
+          }
+        });
+
+        grid.innerHTML = '';
+
+        if (allVideos.length === 0) {
+          grid.innerHTML = '<p style="color:#b3b3b3;">לא נמצאו שירים.</p>';
+          return;
+        }
+
+        allVideos.forEach(item => {
+          const videoId = item.id.videoId;
+          const title = item.snippet.title;
+          const channel = item.snippet.channelTitle;
+          const imgUrl = item.snippet.thumbnails.medium.url;
+
+          const card = document.createElement('div');
+          card.className = 'media-card';
+          card.innerHTML = `
+            <img src="${imgUrl}">
+            <div class="title">${title}</div>
+            <div class="sub-title">${channel}</div>
+            <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
+            <button class="btn-action" style="background:#333; color:white;" onclick="openAddToPlaylistModal({id:'${videoId}', title:'${escapeQuotes(title)}', artist:'${escapeQuotes(channel)}', img:'${imgUrl}'})">+ פלייליסט</button>
+          `;
+          grid.appendChild(card);
+        });
+
+      } catch (e) {
+        grid.innerHTML = '<p style="color:#ff5252;">שגיאה באיחוד השירים.</p>';
+      }
+    }
+
     async function searchChannels(query) {
       const grid = document.getElementById('resultsGrid');
       document.getElementById('resultsTitle').innerText = 'תוצאות אמנים וערוצים';
@@ -489,8 +554,10 @@
           return;
         }
 
-        // 1. כרטיס מיוחד ל"לחבר הכל" (מופיע בראש התוצאות)
+        const channelIds = data.items.map(item => item.id.channelId);
         const mainImg = data.items[0].snippet.thumbnails.medium ? data.items[0].snippet.thumbnails.medium.url : '';
+
+        // כרטיס איחוד מלא
         const aggregatedCard = document.createElement('div');
         aggregatedCard.className = 'media-card artist-card';
         aggregatedCard.style.gridColumn = '1 / -1';
@@ -502,14 +569,14 @@
         aggregatedCard.innerHTML = `
           <img src="${mainImg}" style="width: 80px; height: 80px; margin: 0 auto 8px auto; display: block;">
           <div class="title" style="font-size: 1.05rem; margin-bottom: 2px;">${query}</div>
-          <div class="sub-title" style="margin-bottom: 10px; color: #1db954;">איחוד כל הערוצים והתוצאות</div>
-          <button class="btn-action" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 240px; margin: 0 auto;" onclick="searchYoutube('${escapeQuotes(query)}')">
-            🔗 לחבר הכל (הצג את כל השירים)
+          <div class="sub-title" style="margin-bottom: 10px; color: #1db954;">איחוד מלא של כל הערוצים והשירים</div>
+          <button class="btn-action" style="padding: 10px 16px; font-size: 0.85rem; width: 100%; max-width: 280px; margin: 0 auto;" onclick='searchCombinedArtistSongs("${escapeQuotes(query)}", ${JSON.stringify(channelIds)})'>
+            🔗 לחבר הכל (הצג את כל השירים מכל הערוצים)
           </button>
         `;
         grid.appendChild(aggregatedCard);
 
-        // 2. כותרת הפרדה לערוצים בנפרד
+        // הפרדה לערוצים יחידים
         const divider = document.createElement('div');
         divider.style.gridColumn = '1 / -1';
         divider.style.fontSize = '0.85rem';
@@ -518,7 +585,6 @@
         divider.innerText = 'ערוצים בנפרד (ללא חיבור):';
         grid.appendChild(divider);
 
-        // 3. הצגת כל הערוצים הבודדים בנפרד
         data.items.forEach(item => {
           const channelId = item.id.channelId;
           const title = item.snippet.channelTitle;
