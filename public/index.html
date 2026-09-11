@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ELIMYUZIC</title>
+  <title>Elimusic</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#121212">
   <link rel="icon" type="image/png" href="icon.png">
@@ -24,7 +24,7 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 16px; border-bottom: 1px solid #282828; z-index: 10;
     }
-    .brand-logo-container { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .brand-logo-container { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
     .brand-logo-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
     .brand-logo-text { color: #1db954; font-size: 1rem; font-weight: 800; }
 
@@ -78,8 +78,17 @@
 
     .btn-action {
       background-color: #1db954; border: none; color: black;
-      font-weight: bold; padding: 6px; border-radius: 12px; cursor: pointer; font-size: 0.75rem;
+      font-weight: bold; padding: 6px; border-radius: 12px; cursor: pointer; font-size: 0.75rem; text-align: center;
     }
+
+    .download-group {
+      display: flex; gap: 4px;
+    }
+    .btn-dl {
+      flex: 1; padding: 6px 0; font-size: 0.7rem; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white;
+    }
+    .btn-dl-mp3 { background-color: #007afe; }
+    .btn-dl-mp4 { background-color: #ff9500; }
 
     /* Modals & Overlays */
     .modal-overlay {
@@ -139,7 +148,7 @@
   <!-- Gate Overlay -->
   <div class="modal-overlay" id="gateOverlay" style="display: flex;">
     <div class="modal">
-      <h3>ברוכים הבאים ל-ELIMYUZIC</h3>
+      <h3>ברוכים הבאים ל-Elimusic</h3>
       <p style="font-size: 0.8rem; color: #b3b3b3; margin-bottom: 12px; text-align: center;">הכנס שם משתמש לכניסה</p>
       <input type="text" id="loginUsername" placeholder="שם משתמש">
       <button class="search-btn" style="width: 100%; padding: 10px;" onclick="login()">התחבר</button>
@@ -158,9 +167,9 @@
 
   <!-- Top Bar -->
   <div class="top-bar">
-    <div class="brand-logo-container" onclick="handleSecretClick()">
+    <div class="brand-logo-container" onclick="handleLogoClick()">
       <img src="icon.png" alt="Logo" class="brand-logo-img" onerror="this.style.display='none'">
-      <span class="brand-logo-text">ELIMYUZIC</span>
+      <span class="brand-logo-text">Elimusic</span>
     </div>
     <div class="search-container">
       <input type="text" id="searchInput" placeholder="חפש שיר...">
@@ -228,11 +237,11 @@
   <div class="modal-overlay" id="adminModal">
     <div class="modal">
       <h3>פאנל מנהל</h3>
-      <label style="font-size:0.8rem;">העלאת תמונת פרסומת (לכולם):</label>
+      <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת תמונת פרסומת (לכולם):</label>
       <input type="file" id="adImgInput" accept="image/*">
-      <label style="font-size:0.8rem;">העלאת שמע פרסומת:</label>
+      <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת שמע פרסומת:</label>
       <input type="file" id="adAudioInput" accept="audio/*">
-      <button class="search-btn" style="width: 100%; margin-bottom:12px;" onclick="saveAdGlobally()">פרסם לכל המשתמשים</button>
+      <button class="search-btn" style="width: 100%; margin-bottom:12px; padding: 10px;" onclick="saveAdGlobally()">פרסם לכל המשתמשים</button>
       <button class="search-btn" style="width: 100%; background: #444; color: white;" onclick="closeAdmin()">סגור</button>
     </div>
   </div>
@@ -243,6 +252,25 @@
     let player, selectedTrackForPlaylist = null;
     let playlists = JSON.parse(localStorage.getItem('elim_playlists_v2')) || { 'הפלייליסט שלי': [] };
     let savedAd = JSON.parse(localStorage.getItem('elim_global_ad')) || null;
+    
+    let logoClickCount = 0;
+    let logoClickTimer;
+
+    function handleLogoClick() {
+      logoClickCount++;
+      clearTimeout(logoClickTimer);
+      logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 3000);
+
+      if (logoClickCount === 6) {
+        logoClickCount = 0;
+        const pass = prompt('הכנס סיסמת מנהל:');
+        if (pass === '1059') {
+          document.getElementById('adminModal').style.display = 'flex';
+        } else if (pass !== null) {
+          alert('סיסמה שגויה!');
+        }
+      }
+    }
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('ytPlayer', {
@@ -324,7 +352,10 @@
               <div class="title">${item.title}</div>
               <div class="sub-title">${item.artist}</div>
               <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
-              <button class="btn-action" style="background:#007afe; color:white;" onclick="downloadSong('${item.id}', '${escapeQuotes(item.title)}')">הורד</button>
+              <div class="download-group">
+                <button class="btn-dl btn-dl-mp3" onclick="triggerDirectDownload('${item.id}', 'mp3')">MP3</button>
+                <button class="btn-dl btn-dl-mp4" onclick="triggerDirectDownload('${item.id}', 'mp4')">MP4</button>
+              </div>
               <button class="btn-action" style="background:#ff5252; color:white;" onclick="removeFromPlaylist('${pName}', ${idx})">הסר</button>
             `;
             grid.appendChild(card);
@@ -341,8 +372,18 @@
       renderPlaylists();
     }
 
-    function downloadSong(id, title) {
-      window.open(`https://www.youtubepp.com/watch?v=${id}`, '_blank');
+    function triggerDirectDownload(videoId, format) {
+      showToast(`מתחיל הורדה ב- ${format.toUpperCase()}...`);
+      const downloadUrl = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${videoId}&f=${format}`;
+      
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = downloadUrl;
+      document.body.appendChild(iframe);
+      
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 10000);
     }
 
     async function searchYoutube() {
@@ -371,7 +412,10 @@
             <div class="title">${title}</div>
             <div class="sub-title">${channel}</div>
             <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
-            <button class="btn-action" style="background:#007afe; color:white;" onclick="downloadSong('${videoId}', '${escapeQuotes(title)}')">הורד</button>
+            <div class="download-group">
+              <button class="btn-dl btn-dl-mp3" onclick="triggerDirectDownload('${videoId}', 'mp3')">MP3</button>
+              <button class="btn-dl btn-dl-mp4" onclick="triggerDirectDownload('${videoId}', 'mp4')">MP4</button>
+            </div>
             <button class="btn-action" style="background:#333; color:white;" onclick="openAddToPlaylistModal({id:'${videoId}', title:'${escapeQuotes(title)}', artist:'${escapeQuotes(channel)}', img:'${imgUrl}'})">+ פלייליסט</button>
           `;
           grid.appendChild(card);
@@ -392,15 +436,33 @@
 
     function saveAdGlobally() {
       const imgFile = document.getElementById('adImgInput').files[0];
-      if (!imgFile) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        savedAd = { img: e.target.result };
-        localStorage.setItem('elim_global_ad', JSON.stringify(savedAd));
-        alert('הפרסומת עודכנה לכל המשתמשים!');
-        closeAdmin();
+      const audioFile = document.getElementById('adAudioInput').files[0];
+
+      if (!imgFile) {
+        alert('יש לבחור קובץ תמונה לפרסומת');
+        return;
+      }
+
+      const readerImg = new FileReader();
+      readerImg.onload = function(eImg) {
+        const adData = { img: eImg.target.result };
+
+        if (audioFile) {
+          const readerAudio = new FileReader();
+          readerAudio.onload = function(eAudio) {
+            adData.audio = eAudio.target.result;
+            localStorage.setItem('elim_global_ad', JSON.stringify(adData));
+            alert('הפרסומת עודכנה לכל המשתמשים!');
+            closeAdmin();
+          };
+          readerAudio.readAsDataURL(audioFile);
+        } else {
+          localStorage.setItem('elim_global_ad', JSON.stringify(adData));
+          alert('הפרסומת עודכנה לכל המשתמשים!');
+          closeAdmin();
+        }
       };
-      reader.readAsDataURL(imgFile);
+      readerImg.readAsDataURL(imgFile);
     }
 
     function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
@@ -411,7 +473,6 @@
       document.getElementById('playlistSection').style.display = sec === 'playlist' ? 'block' : 'none';
     }
     function focusSearch() { showSection('results'); document.getElementById('searchInput').focus(); }
-    function handleSecretClick() { document.getElementById('adminModal').style.display = 'flex'; }
     function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
 
     document.addEventListener('DOMContentLoaded', renderPlaylists);
