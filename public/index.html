@@ -164,7 +164,7 @@
   <div id="toast">נוסף לפלייליסט</div>
 
   <!-- Gate Overlay -->
-  <div class="modal-overlay" id="gateOverlay" style="display: flex;">
+  <div class="modal-overlay" id="gateOverlay" style="display: none;">
     <div class="modal">
       <h3>ברוכים הבאים ל-Elimusic</h3>
       <p style="font-size: 0.8rem; color: #b3b3b3; margin-bottom: 12px; text-align: center;">הכנס שם משתמש לכניסה</p>
@@ -219,7 +219,7 @@
     <!-- Playlist Section -->
     <div id="playlistSection" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h4>הפלייליסטים שלי</h4>
+        <h4 id="userPlaylistTitle">הפלייליסטים שלי</h4>
         <button class="search-btn" onclick="createNewPlaylist()">+ פלייליסט חדש</button>
       </div>
       <div id="playlistsContainer"></div>
@@ -293,13 +293,56 @@
   <script>
     const YOUTUBE_API_KEY = 'AIzaSyDciIRdNamQuthn579qKWTM9CqXSyQzO7c';
     let player, selectedTrackForPlaylist = null;
-    let playlists = JSON.parse(localStorage.getItem('elim_playlists_v2')) || { 'הפלייליסט שלי': [] };
+    let currentUser = localStorage.getItem('elim_logged_user') || null;
+    let playlists = {};
     let globalAds = JSON.parse(localStorage.getItem('elim_ads_list')) || [];
     let subscribers = JSON.parse(localStorage.getItem('elim_subscribers_list')) || [];
     let currentSearchMode = 'song';
     
     let logoClickCount = 0;
     let logoClickTimer;
+
+    function initUser() {
+      if (!currentUser) {
+        document.getElementById('gateOverlay').style.display = 'flex';
+      } else {
+        document.getElementById('gateOverlay').style.display = 'none';
+        loadUserPlaylists();
+      }
+    }
+
+    function login() {
+      const userVal = document.getElementById('loginUsername').value.trim();
+      if (!userVal) {
+        alert('נא להכניס שם משתמש');
+        return;
+      }
+      currentUser = userVal;
+      localStorage.setItem('elim_logged_user', currentUser);
+      document.getElementById('gateOverlay').style.display = 'none';
+      loadUserPlaylists();
+    }
+
+    function logout() {
+      localStorage.removeItem('elim_logged_user');
+      currentUser = null;
+      playlists = {};
+      document.getElementById('gateOverlay').style.display = 'flex';
+    }
+
+    function loadUserPlaylists() {
+      if (!currentUser) return;
+      const key = 'elim_playlists_' + currentUser;
+      playlists = JSON.parse(localStorage.getItem(key)) || { 'הפלייליסט שלי': [] };
+      document.getElementById('userPlaylistTitle').innerText = 'הפלייליסטים של ' + currentUser;
+      renderPlaylists();
+    }
+
+    function savePlaylists() {
+      if (!currentUser) return;
+      const key = 'elim_playlists_' + currentUser;
+      localStorage.setItem(key, JSON.stringify(playlists));
+    }
 
     function handleLogoClick() {
       logoClickCount++;
@@ -344,10 +387,6 @@
         savePlaylists();
         renderPlaylists();
       }
-    }
-
-    function savePlaylists() {
-      localStorage.setItem('elim_playlists_v2', JSON.stringify(playlists));
     }
 
     function openAddToPlaylistModal(track) {
@@ -473,7 +512,6 @@
       }
     }
 
-    /* חיבור אמיתי של כל הערוצים יחד */
     async function searchCombinedArtistSongs(query, channelIds) {
       const grid = document.getElementById('resultsGrid');
       document.getElementById('resultsTitle').innerText = 'כל השירים המאוחדים מכל הערוצים';
@@ -481,13 +519,11 @@
       showSection('results');
 
       try {
-        // ביצוע בקשות במקביל לכל הערוצים שנמצאו + חיפוש טקסטואלי כללי
         const fetchPromises = channelIds.map(cId => 
           fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&channelId=${cId}&type=video&key=${YOUTUBE_API_KEY}`)
             .then(res => res.json())
         );
 
-        // הווספת חיפוש כללי
         fetchPromises.push(
           fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`)
             .then(res => res.json())
@@ -557,7 +593,6 @@
         const channelIds = data.items.map(item => item.id.channelId);
         const mainImg = data.items[0].snippet.thumbnails.medium ? data.items[0].snippet.thumbnails.medium.url : '';
 
-        // כרטיס איחוד מלא
         const aggregatedCard = document.createElement('div');
         aggregatedCard.className = 'media-card artist-card';
         aggregatedCard.style.gridColumn = '1 / -1';
@@ -576,7 +611,6 @@
         `;
         grid.appendChild(aggregatedCard);
 
-        // הפרדה לערוצים יחידים
         const divider = document.createElement('div');
         divider.style.gridColumn = '1 / -1';
         divider.style.fontSize = '0.85rem';
@@ -720,8 +754,6 @@
     }
 
     function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
-    function login() { document.getElementById('gateOverlay').style.display = 'none'; }
-    function logout() { document.getElementById('gateOverlay').style.display = 'flex'; }
     function showSection(sec) {
       document.getElementById('resultsSection').style.display = sec === 'results' ? 'block' : 'none';
       document.getElementById('playlistSection').style.display = sec === 'playlist' ? 'block' : 'none';
@@ -737,7 +769,7 @@
     
     function closeAdmin() { document.getElementById('adminModal').style.display = 'none'; }
 
-    document.addEventListener('DOMContentLoaded', renderPlaylists);
+    document.addEventListener('DOMContentLoaded', initUser);
   </script>
 </body>
 </html>
