@@ -257,7 +257,7 @@
     </button>
   </nav>
 
-  <!-- Admin Modal (תואם לתמונה) -->
+  <!-- Admin Modal -->
   <div class="modal-overlay" id="adminModal">
     <div class="modal">
       <h3>פאנל מנהל</h3>
@@ -274,7 +274,6 @@
 
       <button class="btn-save-ad" onclick="saveAdGlobally()">שמור פרסומת</button>
 
-      <!-- רשימת פרסומות קיימות -->
       <div id="adsListContainer" class="item-list"></div>
 
       <hr style="border: 0; border-top: 1px solid #444; margin: 12px 0;">
@@ -284,7 +283,6 @@
 
       <button class="btn-add-subscriber" onclick="addSubscriber()">הוסף מנוי</button>
 
-      <!-- רשימת מנויים קיימים -->
       <div id="subsListContainer" class="item-list"></div>
 
       <button class="btn-close-modal" onclick="closeAdmin()">סגור</button>
@@ -298,7 +296,7 @@
     let playlists = JSON.parse(localStorage.getItem('elim_playlists_v2')) || { 'הפלייליסט שלי': [] };
     let globalAds = JSON.parse(localStorage.getItem('elim_ads_list')) || [];
     let subscribers = JSON.parse(localStorage.getItem('elim_subscribers_list')) || [];
-    let currentSearchMode = 'song'; // 'song' or 'artist'
+    let currentSearchMode = 'song';
     
     let logoClickCount = 0;
     let logoClickTimer;
@@ -439,7 +437,7 @@
       showSection('results');
 
       try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
         const data = await res.json();
         grid.innerHTML = '';
 
@@ -472,12 +470,12 @@
 
     async function searchChannels(query) {
       const grid = document.getElementById('resultsGrid');
-      document.getElementById('resultsTitle').innerText = 'תוצאות אמנים وعרוצים';
-      grid.innerHTML = '<p style="color:#b3b3b3;">מחפש ערוצים...</p>';
+      document.getElementById('resultsTitle').innerText = 'תוצאות אמנים';
+      grid.innerHTML = '<p style="color:#b3b3b3;">מחפש אמנים וערוצים...</p>';
       showSection('results');
 
       try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=channel&key=${YOUTUBE_API_KEY}`);
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=channel&key=${YOUTUBE_API_KEY}`);
         const data = await res.json();
         grid.innerHTML = '';
 
@@ -486,22 +484,27 @@
           return;
         }
 
-        data.items.forEach(item => {
-          const channelId = item.id.channelId;
-          const title = item.snippet.channelTitle;
-          const imgUrl = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '';
+        const mainImg = data.items[0].snippet.thumbnails.medium ? data.items[0].snippet.thumbnails.medium.url : '';
 
-          const card = document.createElement('div');
-          card.className = 'media-card artist-card';
-          card.innerHTML = `
-            <img src="${imgUrl}">
-            <div class="title" style="text-align:center;">${title}</div>
-            <button class="btn-action" onclick="searchYoutube('${escapeQuotes(title)}')">הצג שירים</button>
-          `;
-          grid.appendChild(card);
-        });
+        const aggregatedCard = document.createElement('div');
+        aggregatedCard.className = 'media-card artist-card';
+        aggregatedCard.style.gridColumn = '1 / -1';
+        aggregatedCard.style.padding = '16px';
+        aggregatedCard.style.textAlign = 'center';
+
+        aggregatedCard.innerHTML = `
+          <img src="${mainImg}" style="width: 100px; height: 100px; margin: 0 auto 10px auto; display: block;">
+          <div class="title" style="font-size: 1.1rem; margin-bottom: 4px;">${query}</div>
+          <div class="sub-title" style="margin-bottom: 12px; color: #1db954;">נמצאו מספר ערוצים משוייכים</div>
+          <button class="btn-action" style="padding: 10px 20px; font-size: 0.9rem; width: 100%; max-width: 250px; margin: 0 auto;" onclick="searchYoutube('${escapeQuotes(query)}')">
+            לחבר הכל - הצג את כל השירים
+          </button>
+        `;
+        
+        grid.appendChild(aggregatedCard);
+
       } catch (e) {
-        grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינת ערוצים.</p>';
+        grid.innerHTML = '<p style="color:#ff5252;">שגיאה בטעינת נתוני האמן.</p>';
       }
     }
 
@@ -586,7 +589,6 @@
     }
 
     function renderAdminLists() {
-      // רשימת פרסומות
       const adsContainer = document.getElementById('adsListContainer');
       if (globalAds.length === 0) {
         adsContainer.innerHTML = '<p style="font-size:0.75rem; color:#888;">אין פרסומות שמורות</p>';
@@ -603,7 +605,6 @@
         });
       }
 
-      // רשימת מנויים
       const subsContainer = document.getElementById('subsListContainer');
       if (subscribers.length === 0) {
         subsContainer.innerHTML = '<p style="font-size:0.75rem; color:#888;">אין מנויי פרימיום</p>';
