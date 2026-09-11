@@ -237,11 +237,12 @@
   <div class="modal-overlay" id="adminModal">
     <div class="modal">
       <h3>פאנל מנהל</h3>
-      <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת תמונת פרסומת (לכולם):</label>
+      <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת תמונת פרסומת:</label>
       <input type="file" id="adImgInput" accept="image/*">
       <label style="font-size:0.8rem; display:block; margin-bottom:4px;">העלאת שמע פרסומת:</label>
       <input type="file" id="adAudioInput" accept="audio/*">
-      <button class="search-btn" style="width: 100%; margin-bottom:12px; padding: 10px;" onclick="saveAdGlobally()">פרסם לכל המשתמשים</button>
+      <button class="search-btn" style="width: 100%; margin-bottom:8px; padding: 10px;" onclick="saveAdGlobally()">פרסם לכל המשתמשים</button>
+      <button class="search-btn" style="width: 100%; margin-bottom:12px; background:#ff5252; color:white; padding: 8px;" onclick="removeGlobalAd()">הסר פרסומת קיימת</button>
       <button class="search-btn" style="width: 100%; background: #444; color: white;" onclick="closeAdmin()">סגור</button>
     </div>
   </div>
@@ -353,8 +354,8 @@
               <div class="sub-title">${item.artist}</div>
               <button class="btn-action" onclick="playSong('${item.id}', '${escapeQuotes(item.title)}', '${escapeQuotes(item.artist)}', '${item.img}')">הפעל</button>
               <div class="download-group">
-                <button class="btn-dl btn-dl-mp3" onclick="triggerDirectDownload('${item.id}', 'mp3')">MP3</button>
-                <button class="btn-dl btn-dl-mp4" onclick="triggerDirectDownload('${item.id}', 'mp4')">MP4</button>
+                <button class="btn-dl btn-dl-mp3" onclick="downloadDirectFile('${item.id}', '${escapeQuotes(item.title)}', 'mp3')">MP3</button>
+                <button class="btn-dl btn-dl-mp4" onclick="downloadDirectFile('${item.id}', '${escapeQuotes(item.title)}', 'mp4')">MP4</button>
               </div>
               <button class="btn-action" style="background:#ff5252; color:white;" onclick="removeFromPlaylist('${pName}', ${idx})">הסר</button>
             `;
@@ -372,18 +373,17 @@
       renderPlaylists();
     }
 
-    function triggerDirectDownload(videoId, format) {
-      showToast(`מתחיל הורדה ב- ${format.toUpperCase()}...`);
-      const downloadUrl = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${videoId}&f=${format}`;
+    function downloadDirectFile(videoId, title, format) {
+      showToast(`מכין הורדת ${format.toUpperCase()}...`);
+      const targetUrl = `https://api.vevioz.com/api/button/${format}/${videoId}`;
       
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = downloadUrl;
-      document.body.appendChild(iframe);
-      
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 10000);
+      const link = document.createElement('a');
+      link.href = targetUrl;
+      link.download = `${title}.${format}`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     async function searchYoutube() {
@@ -413,8 +413,8 @@
             <div class="sub-title">${channel}</div>
             <button class="btn-action" onclick="playSong('${videoId}', '${escapeQuotes(title)}', '${escapeQuotes(channel)}', '${imgUrl}')">הפעל</button>
             <div class="download-group">
-              <button class="btn-dl btn-dl-mp3" onclick="triggerDirectDownload('${videoId}', 'mp3')">MP3</button>
-              <button class="btn-dl btn-dl-mp4" onclick="triggerDirectDownload('${videoId}', 'mp4')">MP4</button>
+              <button class="btn-dl btn-dl-mp3" onclick="downloadDirectFile('${videoId}', '${escapeQuotes(title)}', 'mp3')">MP3</button>
+              <button class="btn-dl btn-dl-mp4" onclick="downloadDirectFile('${videoId}', '${escapeQuotes(title)}', 'mp4')">MP4</button>
             </div>
             <button class="btn-action" style="background:#333; color:white;" onclick="openAddToPlaylistModal({id:'${videoId}', title:'${escapeQuotes(title)}', artist:'${escapeQuotes(channel)}', img:'${imgUrl}'})">+ פלייליסט</button>
           `;
@@ -452,17 +452,24 @@
           readerAudio.onload = function(eAudio) {
             adData.audio = eAudio.target.result;
             localStorage.setItem('elim_global_ad', JSON.stringify(adData));
-            alert('הפרסומת עודכנה לכל המשתמשים!');
+            alert('הפרסומת פורסמה בהצלחה לכל המשתמשים!');
             closeAdmin();
           };
           readerAudio.readAsDataURL(audioFile);
         } else {
           localStorage.setItem('elim_global_ad', JSON.stringify(adData));
-          alert('הפרסומת עודכנה לכל המשתמשים!');
+          alert('הפרסומת פורסמה בהצלחה לכל המשתמשים!');
           closeAdmin();
         }
       };
       readerImg.readAsDataURL(imgFile);
+    }
+
+    function removeGlobalAd() {
+      localStorage.removeItem('elim_global_ad');
+      savedAd = null;
+      alert('הפרסומת הוסרה בהצלחה!');
+      closeAdmin();
     }
 
     function escapeQuotes(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
